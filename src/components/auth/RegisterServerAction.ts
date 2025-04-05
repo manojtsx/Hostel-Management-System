@@ -1,7 +1,7 @@
 "use server"
 import prisma from "@/lib/prisma"
 import bcrypt from "bcrypt"
-import { PrismaClient, Prisma } from "@prisma/client"
+import { PrismaClient } from "@prisma/client"
 
 export async function registerSuperAdmin(data : string) {
     try{
