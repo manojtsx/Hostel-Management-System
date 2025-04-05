@@ -1,6 +1,7 @@
 "use server"
 import prisma from "@/lib/prisma"
 import bcrypt from "bcrypt"
+import { PrismaClient, Prisma } from "@prisma/client"
 
 export async function registerSuperAdmin(data : string) {
     try{
@@ -74,7 +75,7 @@ export async function registerHostelAdmin(data : string) {
 
         const hashedPassword = await bcrypt.hash(parsedData.password, 10);
 
-        const transaction = await prisma.$transaction(async (tx) => {
+        const transaction = await prisma.$transaction(async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">) => {
             const newHostelAdmin = await tx.auth.create({   
                 data : {
                 userInEmail : parsedData.email,
