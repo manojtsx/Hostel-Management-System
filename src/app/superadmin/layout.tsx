@@ -1,24 +1,17 @@
-import { ReactNode } from "react"
 import { SuperAdminSidebar } from "@/components/superadmin/sidebar"
 
-interface SuperAdminLayoutProps {
-  children: ReactNode
-}
-
-export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
-  // TODO: Add authentication check
-
+export default function SuperAdminLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      <div className="flex">
-        <div className="w-64 fixed inset-y-0 left-0 z-50">
-          <SuperAdminSidebar />
-        </div>
-        <div className="flex-1 ml-64">
-          <main className="p-6">
-            {children}
-          </main>
-        </div>
+    <div className="flex min-h-screen bg-gray-100">
+      <SuperAdminSidebar />
+      <div className="flex-1">
+        <main className="p-6">
+          {children}
+        </main>
       </div>
     </div>
   )

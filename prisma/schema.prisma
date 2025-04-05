@@ -12,3 +12,200 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+enum Role {
+  SuperAdmin
+  Admin
+  Student
+  User
+}
+
+model System {
+  id Int @id @default(autoincrement())
+  systemId String @unique @default(uuid())
+  systemName String
+  systemEmail String
+  sytemMaintenanceMode Boolean @default(false)
+  SMTPHost String?
+  SMTPPort Int?
+  SMTPUser String?
+  SMTPPassword String?
+  passwordPolicy Boolean @default(false)
+  twoFactorAuth Boolean @default(false) 
+  sessionDuration Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system")
+}
+
+model Auth {
+  id Int @id @default(autoincrement())
+  authId String @unique @default(uuid())
+  userInEmail String @unique
+  userInPhone String @unique
+  userInName String
+  userInPassword String
+  isVerified Boolean @default(false)
+  isRequestApproved Boolean @default(false)
+  role  Role @default(User)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("auth")
+}
+
+model Hostel {
+  id Int @id @default(autoincrement())
+  hostelId String @unique @default(uuid())
+  hostelName String
+  hostelAddress String
+  totalRooms Int
+  totalBeds Int
+  totalFloors Int
+  hostelExpiryRemainingTime Int
+  hostelExpiryDate DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  admins Admin[]
+  reportsComplaints ReportsComplaints[]
+
+  @@map("hostels") 
+}
+
+model Admin {
+  id Int @id @default(autoincrement())
+  adminId String @unique @default(uuid())
+  adminName String
+  adminEmail String @unique
+  adminPhone String @unique
+  authId String  // id from auth table to link the admin to the auth
+  hostelId String
+  hostel Hostel @relation(fields: [hostelId], references: [hostelId], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admin")
+}
+
+enum Status {
+  Pending
+  Approved
+  Rejected
+}
+
+model HostelRequest {
+  id Int @id @default(autoincrement())  
+  hostelRequestId String @unique @default(uuid())
+  hostelName String
+  hostelAddress String
+  totalRooms Int
+  totalBeds Int
+  totalFloors Int
+  adminName String
+  adminEmail String
+  adminPhone String
+  adminPassword String
+  adminAddress String
+  status Status @default(Pending)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("hostel_requests")
+}
+
+enum ReportType {
+  Complaint
+  Suggestion
+  Feedback
+}
+
+enum Priority {
+  Low
+  Medium
+  High
+}
+
+
+model ReportsComplaints {
+  id Int @id @default(autoincrement())
+  reportId String @unique @default(uuid())
+  reportTitle String
+  reportDescription String
+  reportType ReportType @default(Complaint)
+  reportStatus Status @default(Pending)
+  reportPriority Priority @default(Low)
+  reporterUserType Role @default(Student)
+  userId String? // Id of the user who has done complaint
+  hostelId String
+  hostel Hostel @relation(fields: [hostelId], references: [hostelId], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reportReplies ReportReply[]
+
+  @@map("reports_complaints")
+}
+
+// handle replies to the reports complaCints
+model ReportReply {
+  id Int @id @default(autoincrement())
+  replyId String @unique @default(uuid())
+  replyContent String
+  replyStatus Status @default(Pending)
+  reportComplaintId String
+  reportComplaint ReportsComplaints @relation(fields: [reportComplaintId], references: [reportId], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("report_replies")
+}
+
+enum NotificationType {
+  Complaint
+  Suggestion
+  Feedback
+  Maintenance
+  Alert
+  System
+  Other
+}
+
+model Notification {
+  id Int @id @default(autoincrement())
+  notificationId String @unique @default(uuid())
+  notificationTitle String
+  notificationMessage String
+  notificationReadUserIds String[]
+  notificationType NotificationType @default(Other)
+  notificationStatus Status @default(Pending)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notifications")
+}
+
+enum PaymentMethod{
+  Cash
+  Card
+  BankTransfer
+  Wallet
+  Other
+}
+
+model Payment {
+  id Int @id @default(autoincrement())
+  paymentId String @unique @default(uuid())
+  paymentAmount Float
+  paymentHostelPreviousExpiryTime Int
+  paymentAddedTime Int
+  paymentDescription String
+  paymentStatus Status @default(Pending)
+  paymentMethod PaymentMethod @default(Other)
+  createdAt DateTime @default(now()) 
+  hostelId String
+  creditRemainingAmount Float
+  updatedAt DateTime @updatedAt
+
+  @@map("payments")
+}

@@ -1,29 +1,50 @@
 "use client"
+
 import { Button } from "@/components/ui/button"
 import {
-  Building2,
   Users,
-  BarChart3,
-  Settings,
+  ClipboardCheck,
+  AlertTriangle,
+  DollarSign,
+  History,
+  Bell,
   LogOut,
   Menu,
   X,
+  Home,
+  Building2,
+  BarChart3,
+  Settings,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
+import { cn } from "@/lib/utils"
+import { signOut } from "next-auth/react"
+import { useRouter } from "next/navigation"
 
 export function SuperAdminSidebar() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
 
   const navigation = [
-    { name: "Dashboard", href: "/superadmin/dashboard", icon: BarChart3 },
+    { name: "Dashboard", href: "/superadmin/dashboard", icon: Home },
     { name: "Hostels", href: "/superadmin/hostels", icon: Building2 },
-    { name: "Admins", href: "/superadmin/admins", icon: Users },
+    { name  : "Admins", href: "/superadmin/admins", icon: Users },
+    { name: "Requests & Approvals", href: "/superadmin/requests", icon: ClipboardCheck },
+    { name: "Reports & Complaints", href: "/superadmin/reports", icon: AlertTriangle },
+    { name: "Revenue & Subscription", href: "/superadmin/revenue", icon: DollarSign },
     { name: "Analytics", href: "/superadmin/analytics", icon: BarChart3 },
+    { name: "Audit Logs", href: "/superadmin/audit", icon: History },
+    { name: "Notifications", href: "/superadmin/notifications", icon: Bell },
     { name: "Settings", href: "/superadmin/settings", icon: Settings },
   ]
+
+  const handleLogout = async () => {
+    await signOut({redirect : false})
+    router.push("/login/superadmin")
+  }
 
   return (
     <>
@@ -45,46 +66,52 @@ export function SuperAdminSidebar() {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-900 text-white transform transition-transform duration-200 ease-in-out ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0`}
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 w-64 transform bg-gray-900 text-white transition-transform duration-200 ease-in-out",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full",
+          "lg:translate-x-0"
+        )}
       >
-        <div className="flex flex-col h-full">
-          {/* Logo and Title */}
-          <div className="flex items-center justify-center h-16 border-b border-gray-800">
-            <h1 className="text-xl font-bold">Super Admin</h1>
+        <div className="flex h-full flex-col">
+          <div className="flex h-16 items-center justify-between border-b border-gray-800 px-4">
+            <div className="flex items-center space-x-2">
+              <span className="text-lg font-semibold">Super Admin</span>
+            </div>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1">
+          <nav className="flex-1 space-y-1 px-2 py-4">
             {navigation.map((item) => {
-              const Icon = item.icon
               const isActive = pathname === item.href
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={cn(
+                    "group flex items-center rounded-md px-2 py-2 text-sm font-medium",
                     isActive
-                      ? "bg-primary text-white"
-                      : "text-gray-300 hover:bg-gray-800"
-                  }`}
+                      ? "bg-gray-800 text-white"
+                      : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                  )}
                 >
-                  <Icon className="h-5 w-5 mr-3" />
+                  <item.icon
+                    className={cn(
+                      "mr-3 h-5 w-5 flex-shrink-0",
+                      isActive ? "text-white" : "text-gray-400 group-hover:text-white"
+                    )}
+                  />
                   {item.name}
                 </Link>
               )
             })}
           </nav>
 
-          {/* Logout Button */}
-          <div className="p-4 border-t border-gray-800">
+          <div className="border-t border-gray-800 p-4">
             <Button
               variant="ghost"
               className="w-full justify-start text-gray-300 hover:bg-gray-800 hover:text-white"
-              onClick={() => {/* Handle logout */}}
+              onClick={handleLogout}
             >
-              <LogOut className="h-5 w-5 mr-3" />
+              <LogOut className="mr-3 h-5 w-5" />
               Logout
             </Button>
           </div>
