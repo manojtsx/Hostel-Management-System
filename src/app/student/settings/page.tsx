@@ -1,4 +1,4 @@
-import { StudentSettings } from "@/components/student/settings";
+import { StudentSettings } from "@/components/student/settings/settings";
 
 export default function StudentSettingsPage() {
     return (

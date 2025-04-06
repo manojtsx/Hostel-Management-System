@@ -1,4 +1,4 @@
-import { AnnouncementsManagement } from "@/components/admin/announcements"
+import { AnnouncementsManagement } from "@/components/admin/announcements/announcements"
 
 export default function AnnouncementsPage() {
   return (

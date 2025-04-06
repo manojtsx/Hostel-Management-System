@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Navbar } from "@/components/layout/navbar"
-import { Building2, GraduationCap, Shield, Users } from "lucide-react"
+import { Building2, GraduationCap, Shield, Users, Search, User, LogIn } from "lucide-react"
 import Link from "next/link"
 
 export default function Home() {
@@ -20,10 +20,10 @@ export default function Home() {
             Easy to use, secure, and efficient.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/student/register">
+            <Link href="/register/student">
               <Button size="lg">Get Started</Button>
             </Link>
-            <Link href="/admin/login">
+            <Link href="/login/admin">
               <Button size="lg" variant="outline">Admin Login</Button>
             </Link>
           </div>
@@ -98,6 +98,68 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      <section className="py-20 px-4">
+        <div className="container mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12">Find Your Perfect Hostel</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Link href="/hostels">
+              <Card className="h-full hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <Building2 className="h-12 w-12 mb-4" />
+                  <CardTitle>Browse Hostels</CardTitle>
+                  <CardDescription>
+                    Explore our collection of hostels and find the perfect one for you
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full">
+                    <Search className="mr-2 h-4 w-4" />
+                    Browse Now
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/hostels">
+              <Card className="h-full hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <Building2 className="h-12 w-12 mb-4" />
+                  <CardTitle>Compare Hostels</CardTitle>
+                  <CardDescription>
+                    Compare different hostels based on price, facilities, and ratings
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full">
+                    <Search className="mr-2 h-4 w-4" />
+                    Compare Now
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/login">
+              <Card className="h-full hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <User className="h-12 w-12 mb-4" />
+                  <CardTitle>Manage Your Stay</CardTitle>
+                  <CardDescription>
+                    Login to manage your bookings, payments, and other services
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full">
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Login
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
+

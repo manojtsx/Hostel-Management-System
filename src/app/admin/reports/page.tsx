@@ -1,4 +1,4 @@
-import { ReportsManagement } from "@/components/admin/reports"
+import { ReportsManagement } from "@/components/admin/reports/reports"
 
 export default function ReportsPage() {
   return (

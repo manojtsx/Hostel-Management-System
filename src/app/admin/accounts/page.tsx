@@ -1,4 +1,4 @@
-import { AccountsManagement } from "@/components/admin/accounts"
+import { AccountsManagement } from "@/components/admin/accounts/accounts"
 
 export default function AccountsPage() {
   return (

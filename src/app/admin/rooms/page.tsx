@@ -1,4 +1,4 @@
-import { RoomsManagement } from "@/components/admin/rooms"
+import { RoomsManagement } from "@/components/admin/rooms/rooms"
 
 export default function RoomsPage() {
   return (

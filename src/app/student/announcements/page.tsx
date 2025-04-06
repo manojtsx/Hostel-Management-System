@@ -1,4 +1,4 @@
-import { StudentAnnouncements } from "@/components/student/announcements";
+import { StudentAnnouncements } from "@/components/student/announcements/announcements";
 
 export default function StudentAnnouncementsPage() {
     return (

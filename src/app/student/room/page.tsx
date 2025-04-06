@@ -1,4 +1,4 @@
-import { StudentRoom } from "@/components/student/room";
+import { StudentRoom } from "@/components/student/room/room";
 
 export default function StudentRoomPage() {
     return (

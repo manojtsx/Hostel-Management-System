@@ -1,4 +1,4 @@
-import { StudentsManagement } from "@/components/admin/students"
+import { StudentsManagement } from "@/components/admin/students/students"
 
 export default function StudentsPage() {
   return (

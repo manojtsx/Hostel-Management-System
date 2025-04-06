@@ -1,4 +1,4 @@
-import { StudentSidebar } from "@/components/student/sidebar"
+import { StudentSidebar } from "@/components/student/sidebar/sidebar"
 
 export default function StudentLayout({
   children,

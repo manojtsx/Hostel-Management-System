@@ -1,4 +1,4 @@
-import { SettingsManagement } from "@/components/admin/settings"
+import { SettingsManagement } from "@/components/admin/settings/settings"
 
 export default function SettingsPage() {
   return (

@@ -1,0 +1,390 @@
+"use client"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  BedDouble,
+  Users,
+  Bell,
+  Utensils,
+  DollarSign,
+  Calendar,
+  TrendingUp,
+  AlertCircle,
+  Package,
+  FileText,
+  User,
+} from "lucide-react"
+import { useState } from "react"
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+
+interface DashboardStats {
+  totalRooms: number
+  totalStudents: number
+  totalTemporaryGuests: number
+  monthlyRevenue: number
+  occupancyRate: number
+  pendingPayments: number
+  activeTemporaryGuests: number
+}
+
+interface RecentActivity {
+  id: string
+  type: "student" | "guest" | "payment" | "maintenance"
+  title: string
+  description: string
+  date: string
+  status: "completed" | "pending" | "failed"
+}
+
+interface RoomStatus {
+  id: string
+  number: string
+  type: string
+  capacity: number
+  occupied: number
+  status: "available" | "occupied" | "maintenance"
+}
+
+export function AdminDashboard() {
+  const [stats, setStats] = useState<DashboardStats>({
+    totalRooms: 50,
+    totalStudents: 200,
+    totalTemporaryGuests: 15,
+    monthlyRevenue: 50000,
+    occupancyRate: 85,
+    pendingPayments: 5,
+    activeTemporaryGuests: 8,
+  })
+
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([
+    {
+      id: "1",
+      type: "student",
+      title: "New Student Registration",
+      description: "John Doe registered for the semester",
+      date: "2024-03-15",
+      status: "completed",
+    },
+    {
+      id: "2",
+      type: "guest",
+      title: "New Temporary Guest",
+      description: "Sarah Johnson checked in for 2 days",
+      date: "2024-03-16",
+      status: "pending",
+    },
+    {
+      id: "3",
+      type: "payment",
+      title: "Payment Received",
+      description: "Monthly rent payment from Room 101",
+      date: "2024-03-17",
+      status: "completed",
+    },
+    {
+      id: "4",
+      type: "maintenance",
+      title: "Maintenance Request",
+      description: "AC repair needed in Room 102",
+      date: "2024-03-18",
+      status: "pending",
+    },
+  ])
+
+  const [roomStatus, setRoomStatus] = useState<RoomStatus[]>([
+    {
+      id: "101",
+      number: "101",
+      type: "Single",
+      capacity: 4,
+      occupied: 3,
+      status: "occupied",
+    },
+    {
+      id: "102",
+      number: "102",
+      type: "Double",
+      capacity: 8,
+      occupied: 5,
+      status: "occupied",
+    },
+    {
+      id: "103",
+      number: "103",
+      type: "Triple",
+      capacity: 12,
+      occupied: 7,
+      status: "occupied",
+    },
+    {
+      id: "104",
+      number: "104",
+      type: "Single",
+      capacity: 4,
+      occupied: 2,
+      status: "available",
+    },
+    {
+      id: "105",
+      number: "105",
+      type: "Double",
+      capacity: 8,
+      occupied: 4,
+      status: "occupied",
+    },
+  ])
+
+  const monthlyRevenueData = [
+    { month: "Jan", revenue: 20000 },
+    { month: "Feb", revenue: 22000 },
+    { month: "Mar", revenue: 25000 },
+    { month: "Apr", revenue: 23000 },
+    { month: "May", revenue: 27000 },
+    { month: "Jun", revenue: 30000 },
+  ]
+
+  const occupancyData = [
+    { day: "Mon", occupancy: 75 },
+    { day: "Tue", occupancy: 80 },
+    { day: "Wed", occupancy: 85 },
+    { day: "Thu", occupancy: 90 },
+    { day: "Fri", occupancy: 85 },
+    { day: "Sat", occupancy: 70 },
+    { day: "Sun", occupancy: 65 },
+  ]
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "bg-green-500"
+      case "pending":
+        return "bg-yellow-500"
+      case "failed":
+        return "bg-red-500"
+      default:
+        return "bg-gray-500"
+    }
+  }
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "student":
+        return <Users className="h-4 w-4" />
+      case "guest":
+        return <User className="h-4 w-4" />
+      case "payment":
+        return <DollarSign className="h-4 w-4" />
+      case "maintenance":
+        return <AlertCircle className="h-4 w-4" />
+      default:
+        return null
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Overview of your hostel management system
+          </p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button variant="outline">
+            <Calendar className="mr-2 h-4 w-4" />
+            This Month
+          </Button>
+          <Button>
+            <FileText className="mr-2 h-4 w-4" />
+            Generate Report
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Rooms</CardTitle>
+            <BedDouble className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalRooms}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.occupancyRate}% occupancy rate
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalStudents}</div>
+            <p className="text-xs text-muted-foreground">
+              {Math.round((stats.totalStudents / (stats.totalRooms * 4)) * 100)}% capacity
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Temporary Guests</CardTitle>
+            <User className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalTemporaryGuests}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.activeTemporaryGuests} currently active
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${stats.monthlyRevenue}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.pendingPayments} pending payments
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4">
+          <CardHeader>
+            <CardTitle>Recent Activities</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-8">
+              {recentActivities.map((activity) => (
+                <div key={activity.id} className="flex items-center">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {activity.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {activity.description}
+                    </p>
+                  </div>
+                  <div className="ml-auto font-medium">
+                    <Badge
+                      variant={
+                        activity.status === "completed"
+                          ? "default"
+                          : activity.status === "pending"
+                          ? "secondary"
+                          : "destructive"
+                      }
+                    >
+                      {activity.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="col-span-3">
+          <CardHeader>
+            <CardTitle>Room Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {roomStatus.map((room) => (
+                <div key={room.id} className="flex items-center">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      Room {room.number}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {room.occupied}/{room.capacity} occupied
+                    </p>
+                  </div>
+                  <div className="ml-auto font-medium">
+                    <Badge
+                      variant={
+                        room.status === "available"
+                          ? "default"
+                          : room.status === "occupied"
+                          ? "secondary"
+                          : "destructive"
+                      }
+                    >
+                      {room.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Alerts and Notifications */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Pending Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Package className="h-4 w-4 text-yellow-500" />
+                  <div>
+                    <p className="text-sm font-medium">{stats.pendingPayments} Pending Payments</p>
+                    <p className="text-xs text-muted-foreground">Follow up required</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">View</Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <Button variant="outline" className="w-full">
+                <Users className="mr-2 h-4 w-4" />
+                Add Student
+              </Button>
+              <Button variant="outline" className="w-full">
+                <BedDouble className="mr-2 h-4 w-4" />
+                Manage Rooms
+              </Button>
+              <Button variant="outline" className="w-full">
+                <Bell className="mr-2 h-4 w-4" />
+                Post Announcement
+              </Button>
+              <Button variant="outline" className="w-full">
+                <Utensils className="mr-2 h-4 w-4" />
+                Update Menu
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+} 

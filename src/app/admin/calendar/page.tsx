@@ -1,4 +1,4 @@
-import { CalendarManagement } from "@/components/admin/calendar"
+import { CalendarManagement } from "@/components/admin/calendar/calendar"
 
 export default function CalendarPage() {
   return (

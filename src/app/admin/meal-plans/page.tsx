@@ -1,4 +1,4 @@
-import { MealPlansManagement } from "@/components/admin/meal-plans"
+import { MealPlansManagement } from "@/components/admin/meal-palns/meal-plans"
 
 export default function MealPlansPage() {
   return (

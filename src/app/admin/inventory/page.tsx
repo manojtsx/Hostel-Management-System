@@ -1,4 +1,4 @@
-import { InventoryManagement } from "@/components/admin/inventory"
+import { InventoryManagement } from "@/components/admin/inventory/inventory"
 
 export default function InventoryPage() {
   return (
