@@ -97,7 +97,7 @@ export const createAdmin = async (data: string) => {
         if(existingEmail || existingAuth){
             return {
                 success : false,
-                message : "Email already exists"
+                message : "Email or Phone already exists"
             }
         }
         
@@ -110,7 +110,8 @@ export const createAdmin = async (data: string) => {
                     userInPassword: hashedPassword,
                     userInName: parsedData.adminName,
                     userInPhone: parsedData.adminPhone,
-                    role: "Admin"
+                    role: "Admin",
+                    academicYear: isSuperAdmin.academicYear as number
                 }
             })
             const admin = await tx.admin.create({
@@ -119,7 +120,8 @@ export const createAdmin = async (data: string) => {
                     adminEmail: parsedData.adminEmail,
                     adminPhone: parsedData.adminPhone,
                     hostelId: parsedData.hostel.hostelId,
-                    authId: auth.authId
+                    authId: auth.authId,
+                    academicYear: isSuperAdmin.academicYear as number
                 }
             })
             return admin;
@@ -201,12 +203,12 @@ export const editAdmin = async (data: string) => {
                     adminId: parsedData.adminId
                 },
                 data: {
-                    adminName: parsedData.name,
-                    adminEmail: parsedData.email,
-                    adminPhone: parsedData.phone,
-                    hostelId: parsedData.hostelId
+                    adminName: parsedData.adminName,
+                    adminEmail: parsedData.adminEmail,
+                    adminPhone: parsedData.adminPhone,
+                    hostelId: parsedData.hostel.hostelId,
                 }
-            })
+            });
             const auth = await tx.auth.update({
                 where: {
                     authId: admin?.authId
@@ -451,4 +453,44 @@ export const getAllAdmins = async (currentPage: number = 1, pageSize: number = 1
     }
 }
 
-
+export const resetPass = async (adminId: string) => {
+    const isSuperAdmin = await isValidSuperAdmin();
+    if (!isSuperAdmin.success) {
+        return {
+            success: false,
+            message: isSuperAdmin.message
+        }
+    }
+    try {
+        const admin = await prisma.admin.findUnique({
+            where: {
+                adminId: adminId
+            }
+        })
+        if (!admin) {
+            return {
+                success: false,
+                message: "Admin not found"
+            }
+        }
+        const hashedPassword = await bcrypt.hash(admin.adminPhone, 10);
+        const updatedAuth = await prisma.auth.update({
+            where: {
+                authId: admin.authId
+            },
+            data: {
+                userInPassword: hashedPassword
+            }
+        })
+        return {
+            success: true,
+            message: "Password reset successfully"
+        }   
+    } catch (err) {
+        console.log(err);
+        return {
+            success: false,
+            message: "Something went wrong"
+        }
+    }   
+}   

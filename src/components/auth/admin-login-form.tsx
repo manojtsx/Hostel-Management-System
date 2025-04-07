@@ -27,16 +27,16 @@ export function AdminLoginForm() {
         </div>
         <CardTitle className="text-center">Admin Login</CardTitle>
         <CardDescription className="text-center">
-          Enter your admin ID to continue
+          Enter your hostel number to continue
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="userId">Admin ID</Label>
+            <Label htmlFor="userId">Hostel Number</Label>
             <Input
               id="userId"
-              placeholder="Enter your admin ID"
+              placeholder="Enter your hostel number"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
               required

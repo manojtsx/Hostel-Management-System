@@ -14,8 +14,10 @@ import {
   Package,
   BarChart,
   Wallet,
+  LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { signOut } from "next-auth/react"
 
 const studentNavItems = [
   {
@@ -81,7 +83,7 @@ export function StudentSidebar() {
   return (
     <div className="flex h-full flex-col gap-2">
       <div className="flex h-14 items-center border-b px-4">
-        <Link href="/student" className="flex items-center gap-2 font-semibold">
+        <Link href="/student/dashboard" className="flex items-center gap-2 font-semibold">
           <span>Student Portal</span>
         </Link>
       </div>
@@ -104,6 +106,15 @@ export function StudentSidebar() {
             )
           })}
         </nav>
+      </div>
+      <div className="mt-auto border-t p-2">
+        <button
+          onClick={() => signOut({ callbackUrl: "/login/student" })}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 transition-all hover:bg-red-50"
+        >
+          <LogOut className="h-4 w-4" />
+          Logout
+        </button>
       </div>
     </div>
   )

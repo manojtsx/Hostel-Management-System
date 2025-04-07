@@ -2,18 +2,23 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel } from "@/components/ui/carousel";
-import { Building2, Users, BarChart3, Settings } from "lucide-react";
+import { Building2, Users, BarChart3, Shield } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
 
-export function SuperAdminLoginForm() {
+export default function AdminLogin() {
+  // get the id from the url
+  const { id } = useParams();
   const router = useRouter();
   const [user, setUser] = useState({
+    id: id,
     email: "",
     password: "",
+    role: "Admin",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,38 +26,38 @@ export function SuperAdminLoginForm() {
 
   // Load saved credentials on component mount
   useEffect(() => {
-    const savedEmail = localStorage.getItem("superadmin_email");
-    const savedPassword = localStorage.getItem("superadmin_password");
-    const savedRemember = localStorage.getItem("superadmin_remember") === "true";
-    
-    if (savedRemember && savedEmail && savedPassword) {
-      setUser({
-        email: savedEmail,
-        password: savedPassword,
-      });
-      setRemember(true);
+    if (id) {
+      const savedEmail = localStorage.getItem(`admin_email_${id}`);
+      const savedPassword = localStorage.getItem(`admin_password_${id}`);
+      const savedRemember = localStorage.getItem(`admin_remember_${id}`) === "true";
+      
+      if (savedRemember && savedEmail && savedPassword) {
+        setUser(prev => ({
+          ...prev,
+          email: savedEmail,
+          password: savedPassword,
+        }));
+        setRemember(true);
+      }
     }
-  }, []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUser({ ...user, [e.target.name]: e.target.value });
-  };
+  }, [id]);
 
   const handleRememberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
     setRemember(isChecked);
     
-    if (!isChecked) {
+    if (!isChecked && id) {
       // Clear saved credentials if remember me is unchecked
-      localStorage.removeItem("superadmin_email");
-      localStorage.removeItem("superadmin_password");
-      localStorage.removeItem("superadmin_remember");
+      localStorage.removeItem(`admin_email_${id}`);
+      localStorage.removeItem(`admin_password_${id}`);
+      localStorage.removeItem(`admin_remember_${id}`);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+
     // validate the form
     if (!user.email || !user.password) {
       setError("Please enter your email and password");
@@ -68,32 +73,32 @@ export function SuperAdminLoginForm() {
 
     try {
       const response = await signIn("credentials", {
+        hostelNumber: user.id,
         email: user.email,
         password: user.password,
+        role : "Admin",
         redirect: false,
-        role: "SuperAdmin",
       });
-
+      
       if (response?.error) {
         setError(response.error);
       } else {
-        toast.success("Login successful. Redirecting to superadmin dashboard...");
+        toast.success("Login successful. Redirecting to admin dashboard...");
         // Save credentials if remember me is checked
-        if (remember) {
-          localStorage.setItem("superadmin_email", user.email);
-          localStorage.setItem("superadmin_password", user.password);
-          localStorage.setItem("superadmin_remember", "true");
-        } else {
+        if (remember && id) {
+          localStorage.setItem(`admin_email_${id}`, user.email);
+          localStorage.setItem(`admin_password_${id}`, user.password);
+          localStorage.setItem(`admin_remember_${id}`, "true");
+        } else if (id) {
           // Clear saved credentials if remember me is unchecked
-          localStorage.removeItem("superadmin_email");
-          localStorage.removeItem("superadmin_password");
-          localStorage.removeItem("superadmin_remember");
+          localStorage.removeItem(`admin_email_${id}`);
+          localStorage.removeItem(`admin_password_${id}`);
+          localStorage.removeItem(`admin_remember_${id}`);
         }
-        router.push("/superadmin/dashboard");
+        router.push("/admin/dashboard");
       }
-    } catch (error) {
-      console.log(error);
-      setError(error instanceof Error ? error.message : "Something went wrong");
+    } catch (error: any) {
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -105,37 +110,33 @@ export function SuperAdminLoginForm() {
         {/* Left side - Carousel */}
         <div className="hidden md:block">
           <Carousel className="h-full">
-            {/* Keep image in background */}
             <div className="bg-primary/10 p-8 rounded-lg h-[500px] flex flex-col items-center justify-center text-center">
-              {/* <Image src="/images/carousel-1.webp" alt="Super Admin Login Background" fill className="object-cover" /> */}
               <Building2 className="h-16 w-16 text-primary mb-4" />
-              <h3 className="text-2xl font-bold mb-2">System Administration</h3>
+              <h3 className="text-2xl font-bold mb-2">Manage Hostels</h3>
               <p className="text-muted-foreground">
-                Complete control over the entire hostel management system
+                Efficiently manage multiple hostels with our comprehensive
+                system
               </p>
             </div>
             <div className="bg-primary/10 p-8 rounded-lg h-[500px] flex flex-col items-center justify-center text-center">
-              {/* <Image src="/images/carousel-2.jpg" alt="Super Admin Login Background" fill className="object-cover" /> */}
               <Users className="h-16 w-16 text-primary mb-4" />
-              <h3 className="text-2xl font-bold mb-2">Admin Management</h3>
+              <h3 className="text-2xl font-bold mb-2">Student Management</h3>
               <p className="text-muted-foreground">
-                Manage hostel administrators and their permissions
+                Track student details and manage room assignments
               </p>
             </div>
             <div className="bg-primary/10 p-8 rounded-lg h-[500px] flex flex-col items-center justify-center text-center">
-              {/* <Image src="/images/carousel-3.jpg" alt="Super Admin Login Background" fill className="object-cover" /> */}
               <BarChart3 className="h-16 w-16 text-primary mb-4" />
-              <h3 className="text-2xl font-bold mb-2">System Analytics</h3>
+              <h3 className="text-2xl font-bold mb-2">Analytics & Reports</h3>
               <p className="text-muted-foreground">
-                Access comprehensive system-wide analytics and reports
+                Get insights with detailed analytics and reports
               </p>
             </div>
             <div className="bg-primary/10 p-8 rounded-lg h-[500px] flex flex-col items-center justify-center text-center">
-              {/* <Image src="/images/carousel-4.jpg" alt="Super Admin Login Background" fill className="object-cover" /> */}
-              <Settings className="h-16 w-16 text-primary mb-4" />
-              <h3 className="text-2xl font-bold mb-2">System Configuration</h3>
+              <Shield className="h-16 w-16 text-primary mb-4" />
+              <h3 className="text-2xl font-bold mb-2">Secure Access</h3>
               <p className="text-muted-foreground">
-                Configure system settings and global parameters
+                Role-based access control for enhanced security
               </p>
             </div>
           </Carousel>
@@ -144,25 +145,22 @@ export function SuperAdminLoginForm() {
         {/* Right side - Login Form */}
         <Card className="w-full">
           <CardHeader>
-            <CardTitle className="text-2xl text-center">
-              Super Admin Login
-            </CardTitle>
+            <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && <p className="text-red-500 text-center">{error}</p>}
               <div className="space-y-2">
-                {error && <p className="text-red-500 text-sm">{error}</p>}
                 <label htmlFor="email" className="text-sm font-medium">
                   Email
                 </label>
                 <input
                   id="email"
                   type="email"
-                  name="email"
-                  value={user.email}
-                  onChange={handleChange}
                   className="w-full p-2 border rounded-md"
                   placeholder="Enter your email"
+                  onChange={(e) => setUser({ ...user, email: e.target.value })}
+                  value={user.email}
                 />
               </div>
               <div className="space-y-2">
@@ -172,21 +170,20 @@ export function SuperAdminLoginForm() {
                 <input
                   id="password"
                   type="password"
-                  name="password"
-                  value={user.password}
-                  onChange={handleChange}
                   className="w-full p-2 border rounded-md"
                   placeholder="Enter your password"
+                  onChange={(e) => setUser({ ...user, password: e.target.value })}
+                  value={user.password}
                 />
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="remember"
+                  <input 
+                    type="checkbox" 
+                    id="remember" 
+                    className="rounded"
                     checked={remember}
                     onChange={handleRememberChange}
-                    className="rounded"
                   />
                   <label htmlFor="remember" className="text-sm">
                     Remember me
@@ -203,6 +200,14 @@ export function SuperAdminLoginForm() {
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
             </form>
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Don&apos;t have an account?{" "}
+                <Link href="/register" className="text-primary hover:underline">
+                  Contact your administrator
+                </Link>
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -75,7 +75,9 @@ export function SuperAdminSidebar() {
         <div className="flex h-full flex-col">
           <div className="flex h-16 items-center justify-between border-b border-gray-800 px-4">
             <div className="flex items-center space-x-2">
-              <span className="text-lg font-semibold">Super Admin</span>
+              <Link href="/superadmin/dashboard" className="flex items-center gap-2 font-semibold">
+                <span className="text-lg font-semibold">Super Admin</span>
+              </Link>
             </div>
           </div>
 

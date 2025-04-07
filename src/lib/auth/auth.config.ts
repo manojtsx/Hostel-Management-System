@@ -7,101 +7,147 @@ import { Adapter } from "next-auth/adapters";
 import bcrypt from "bcrypt";
 import { Role } from "@prisma/client";
 
-export const getUser = async (authId : string) => {
-    let user = null;
-    try {
-        user = await prisma.auth.findFirst({
-            where : {
-                authId : authId
-        },
-        select : {
-            authId : true,
-            role : true,
-        }
-    });
-    const isUserVerified = await prisma.auth.findFirst({
-        where : {
-            authId : authId,
-            isVerified : true
-        }
-    })
-    if(!isUserVerified) {
-        throw new Error('User not verified');
-    }
-    } catch (error) {
-        console.log(error);
-    }
-    return user;
-}
-export const authOptions : NextAuthOptions = {
-    adapter : PrismaAdapter(prisma) as Adapter,
-    session : {
-        strategy : 'jwt'
+export const authOptions: NextAuthOptions = {
+    adapter: PrismaAdapter(prisma) as Adapter,
+    session: {
+        strategy: 'jwt'
     },
-    secret : process.env.NEXTAUTH_SECRET,
-    providers : [
+    secret: process.env.NEXTAUTH_SECRET,
+    providers: [
         CredentialsProvider({
-            name : 'credentials',
-            credentials : {
-                email : {label : 'Email', type : 'email'},
-                password : {label : 'Password', type : 'password'}
+            name: 'credentials',
+            credentials: {
+                hostelNumber: { label: 'Hostel Number', type: 'text' },
+                email: { label: 'Email', type: 'email' },
+                password: { label: 'Password', type: 'password' },
+                role: { label: 'Role', type: 'text' }
             },
-            async authorize(credentials){
-                const parsedCredentials = z.object({email : z.string().email(), password : z.string().min(6)}).safeParse(credentials);
-                if(parsedCredentials.success) {
-                    const user = await prisma.auth.findFirst({
-                        where : {
-                            userInEmail : parsedCredentials.data.email
-                        },
-                        select : {
-                            id : true,
-                            authId : true,
-                            userInEmail : true,
-                            userInPassword : true,
-                            role : true,
+            async authorize(credentials) {
+                const parsedCredentials = z.object({
+                    hostelNumber: z.string().optional(),
+                    email: z.string().email(),
+                    password: z.string().min(6),
+                    role: z.string()
+                }).safeParse(credentials);
+
+                if (!parsedCredentials.success) {
+                    throw new Error('Invalid credentials format');
+                }
+
+                const { hostelNumber, email, password, role } = parsedCredentials.data;
+                console.log(hostelNumber, email, password)
+
+                // First, verify the hostel exists
+                if (!hostelNumber && role === "SuperAdmin") {
+                    // verify for the superadmin
+                    const superAdmin = await prisma.auth.findFirst({
+                        where: {
+                            userInEmail: email,
+                            role: Role.SuperAdmin
                         }
                     })
-                    if(!user || !user.userInPassword) {
+                    if (!superAdmin) {
                         throw new Error('Invalid credentials');
                     }
-                    
-                    const isPasswordValid = await bcrypt.compare(parsedCredentials.data.password, user.userInPassword);
-                    if(!isPasswordValid) {
-                        throw new Error('Invalid credentials');
-                    }
-                    const userData = await getUser(user.authId);
                     return {
-                        id : userData?.authId,
-                        role : userData?.role as Role,
-                        email : user.userInEmail
-                    };
+                        id: superAdmin.authId,
+                        email: superAdmin.userInEmail,
+                        role: superAdmin.role,
+                        hostelId: superAdmin.hostelId as string,
+                        name: superAdmin.userInName
+                    }
                 }
-                throw new Error('Invalid credentials');
+
+                const hostel = await prisma.hostel.findFirst({
+                    where: {
+                        hostelNumber: hostelNumber
+                    }
+                });
+
+                if (!hostel) {
+                    throw new Error('Invalid hostel number');
+                }
+
+                // the auth can be of admin or student of the hostel
+                // First, find the admin associated with this hostel
+                const admin = await prisma.admin.findFirst({
+                    where: {
+                        adminEmail: email,
+                        hostelId: hostel.hostelId
+                    },
+                    include: {
+                        hostel: true
+                    }
+                });
+
+                if (!admin) {
+                    throw new Error('No admin found for this hostel');
+                }
+
+                // Find the auth record for this admin
+                let auth;
+                if (role === "Admin") {
+                    auth = await prisma.auth.findFirst({
+                        where: {
+                            userInEmail: email,
+                            role: Role.Admin
+                        }
+                    });
+                } else if (role === "Student") {
+                    auth = await prisma.auth.findFirst({
+                        where: {
+                            userInEmail: email,
+                            role: Role.Student
+                        }
+                    });
+                }
+
+                if (!auth || !auth.userInPassword) {
+                    throw new Error('Invalid credentials');
+                }
+
+                // Verify password
+                const isPasswordValid = await bcrypt.compare(password, auth.userInPassword);
+                if (!isPasswordValid) {
+                    throw new Error('Invalid password');
+                }
+
+                // Check if user is verified
+                if (!auth.isVerified) {
+                    throw new Error('Account not verified');
+                }
+
+                // Return the user object
+                return {
+                    id: auth.authId,
+                    email: auth.userInEmail,
+                    role: auth.role,
+                };
             }
         })
     ],
-    callbacks : {
-        async jwt({token, user}) {
-            if(user) {
+    callbacks: {
+        async jwt({ token, user }) {
+            if (user) {
                 token.id = user.id;
                 token.email = user.email;
                 token.role = user.role;
             }
             return token;
         },
-        async session({session, token}) {
-            if(token.role) {
-                session.user.role = token.role;
-                session.user.id = token.id;
-                session.user.email = token.email;
+        async session({ session, token }) {
+            if (token) {
+                session.user.id = token.id as string;
+                session.user.email = token.email as string;
+                session.user.role = token.role as Role;
             }
             return session;
         }
     },
-    pages : {
-        signIn : '/login',
-        signOut : '/logout',
-        error : '/error'
+    pages: {
+        signIn: '/login',
+        signOut: '/logout',
+        error: '/error'
     },
-    debug : process.env.NODE_ENV === 'development'
+    debug: process.env.NODE_ENV === 'development'
 }

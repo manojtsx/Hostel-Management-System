@@ -85,9 +85,14 @@ export function AdminForm({ mode, initialData, onSubmit }: AdminFormProps) {
   })
 
   const handleSubmit = (data: AdminFormValues) => {
-    onSubmit(data)
-    setOpen(false)
-    form.reset()
+    //  close only if the submit is successful
+    try{
+      onSubmit(data)
+      setOpen(false)
+      form.reset()
+    }catch(err){
+      console.log(err);
+    }
   }
 
   return (

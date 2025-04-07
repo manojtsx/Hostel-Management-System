@@ -36,6 +36,7 @@ model System {
   sessionDuration Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  academicYear Int
 
   @@map("system")
 }
@@ -50,6 +51,8 @@ model Auth {
   isVerified Boolean @default(false)
   isRequestApproved Boolean @default(false)
   role  Role @default(User)
+  hostelId String?
+  academicYear Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -59,6 +62,7 @@ model Auth {
 model Hostel {
   id Int @id @default(autoincrement())
   hostelId String @unique @default(uuid())
+  hostelNumber String
   hostelName String
   hostelAddress String
   totalRooms Int
@@ -70,6 +74,7 @@ model Hostel {
   updatedAt DateTime @updatedAt
   admins Admin[]
   reportsComplaints ReportsComplaints[]
+  academicYear Int
 
   @@map("hostels") 
 }
@@ -85,6 +90,7 @@ model Admin {
   hostel Hostel @relation(fields: [hostelId], references: [hostelId], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  academicYear Int
 
   @@map("admin")
 }
@@ -111,7 +117,7 @@ model HostelRequest {
   status Status @default(Pending)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  academicYear Int
   @@map("hostel_requests")
 }
 
@@ -142,6 +148,7 @@ model ReportsComplaints {
   hostel Hostel @relation(fields: [hostelId], references: [hostelId], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  academicYear Int
   reportReplies ReportReply[]
 
   @@map("reports_complaints")
@@ -157,7 +164,7 @@ model ReportReply {
   reportComplaint ReportsComplaints @relation(fields: [reportComplaintId], references: [reportId], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  academicYear Int
   @@map("report_replies")
 }
 
@@ -174,13 +181,14 @@ enum NotificationType {
 model Notification {
   id Int @id @default(autoincrement())
   notificationId String @unique @default(uuid())
-  notificationTitle String
+  notificationTitle String  
   notificationMessage String
   notificationReadUserIds String[]
   notificationType NotificationType @default(Other)
   notificationStatus Status @default(Pending)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  academicYear Int
 
   @@map("notifications")
 }
@@ -206,6 +214,7 @@ model Payment {
   hostelId String
   creditRemainingAmount Float
   updatedAt DateTime @updatedAt
+  academicYear Int
 
   @@map("payments")
 }

@@ -1,7 +1,9 @@
+import { StudentRegisterForm } from "@/components/auth/student-register-form";
+
 export default function StudentRegisterPage() {
     return (
-        <div>
-            <h1>Student Register</h1>
+        <div className="flex flex-col items-center justify-center h-screen">
+            <StudentRegisterForm />
         </div>
     )
 }

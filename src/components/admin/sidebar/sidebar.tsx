@@ -15,8 +15,10 @@ import {
   BarChart,
   Wallet,
   UserPlus,
+  LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { signOut } from "next-auth/react"
 
 const adminNavItems = [
   {
@@ -82,7 +84,7 @@ export function AdminSidebar() {
   return (
     <div className="flex h-full flex-col gap-2">
       <div className="flex h-14 items-center border-b px-4">
-        <Link href="/admin" className="flex items-center gap-2 font-semibold">
+        <Link href="/admin/dashboard" className="flex items-center gap-2 font-semibold">
           <span>Admin Portal</span>
         </Link>
       </div>
@@ -105,6 +107,15 @@ export function AdminSidebar() {
             )
           })}
         </nav>
+      </div>
+      <div className="mt-auto border-t p-2">
+        <button
+          onClick={() => signOut({ callbackUrl: "/login/admin" })}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 transition-all hover:bg-red-50"
+        >
+          <LogOut className="h-4 w-4" />
+          Logout
+        </button>
       </div>
     </div>
   )

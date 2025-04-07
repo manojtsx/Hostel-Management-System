@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createAdmin, deleteAdmin, editAdmin, toggleActiveStatus } from "./AdminServerAction";
+import { createAdmin, deleteAdmin, editAdmin, resetPass, toggleActiveStatus } from "./AdminServerAction";
 import { toast } from "sonner";
 
 export const useCreateAdmin = () => {
@@ -28,8 +28,8 @@ export const useCreateAdmin = () => {
         },
         onSuccess : (data) => {
             if(data.success){
-                queryClient.invalidateQueries({queryKey : ['admins']});
                 toast.success(data.message)
+                queryClient.invalidateQueries({queryKey : ['admins']});
             }else{
                 toast.error(data.message)
             }
@@ -75,6 +75,24 @@ export const useCreateAdmin = () => {
             console.log(error);
             toast.error("Something went wrong.")
         }
-    })
-    return { addAdmin, isCreatingAdmin, updateAdmin, isUpdatingAdmin, removeAdmin, isRemovingAdmin, toggleStatus, isTogglingStatus};
+    });
+
+    const {mutateAsync : resetPassword, isPending : isResettingPassword} = useMutation({    
+        mutationFn : async(adminId : string)=> {
+            return await resetPass(adminId);
+        },
+        onSuccess : (data)=> {
+            if(data.success){
+                toast.success(data.message);
+                queryClient.invalidateQueries({queryKey : ['admins']})
+            }else{
+                toast.error(data.message)
+            }
+        },
+        onError : (error)=> {
+            console.log(error);
+            toast.error("Something went wrong.")
+        }
+    });
+    return { addAdmin, isCreatingAdmin, updateAdmin, isUpdatingAdmin, removeAdmin, isRemovingAdmin, toggleStatus, isTogglingStatus, resetPassword, isResettingPassword};
 }

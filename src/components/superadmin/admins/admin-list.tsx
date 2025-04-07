@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { User2, Trash2, Loader2 } from "lucide-react"
+import { User2, Trash2, Loader2, Lock } from "lucide-react"
 import { AdminForm } from "./admin-form"
 import {
   AlertDialog,
@@ -76,6 +76,11 @@ export function AdminList() {
   const { toggleStatus } = useCreateAdmin();
   const handleToggleStatus = async (id: string) => {
     await toggleStatus(id);
+  };
+
+  const { resetPassword } = useCreateAdmin();
+  const handleResetPassword = async (id: string) => {
+    await resetPassword(id);
   };
 
   return (
@@ -193,7 +198,29 @@ export function AdminList() {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
+                  {/* add a button to reset password and open a dialog to reset password */}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon">
+
+                        <Lock className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Reset Password</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to reset the password for {admin.adminName}?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleResetPassword(admin.adminId)}>Reset Password</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                      </AlertDialog>
                   </div>
+                  
                 </TableCell>
               </TableRow>
             ))}

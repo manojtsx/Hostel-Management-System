@@ -1,5 +1,4 @@
 import { SuperAdminSidebar } from "@/components/superadmin/sidebar"
-import { Providers } from "@/components/providers"
 
 export default function SuperAdminLayout({
   children,
@@ -11,9 +10,7 @@ export default function SuperAdminLayout({
       <SuperAdminSidebar />
       <div className="flex-1">
         <main className="p-6">
-          <Providers>
             {children}
-          </Providers>
         </main>
       </div>
     </div>

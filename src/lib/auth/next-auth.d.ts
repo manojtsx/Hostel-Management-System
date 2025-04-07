@@ -4,6 +4,7 @@ import { Role } from "@prisma/client";
 import { DefaultSession, DefaultUser } from "next-auth";
 import { DefaultJWT } from "next-auth/jwt";
 
+// Extend the built-in session types
 declare module "next-auth" {
   interface Session {
     user: {
@@ -26,3 +27,4 @@ declare module "next-auth/jwt" {
     email?: string;
   }
 }
+

@@ -24,6 +24,8 @@ export async function registerSuperAdmin(data : string) {
 
         const hashedPassword = await bcrypt.hash(parsedData.password, 10);
         
+        // FIND THE CURRENT ACADEMIC YEAR
+        const currentAcademicYear = new Date().getFullYear();
         const newSuperAdmin = await prisma.auth.create({
             data : {
                 userInEmail : parsedData.email,
@@ -32,6 +34,7 @@ export async function registerSuperAdmin(data : string) {
                 userInPassword : hashedPassword,
                 role : "SuperAdmin",
                 isVerified : true,
+                academicYear : currentAcademicYear
             }
         })
 
@@ -75,6 +78,7 @@ export async function registerHostelAdmin(data : string) {
 
         const hashedPassword = await bcrypt.hash(parsedData.password, 10);
 
+        const currentAcademicYear = new Date().getFullYear();
         const transaction = await prisma.$transaction(async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">) => {
             const newHostelAdmin = await tx.auth.create({   
                 data : {
@@ -85,6 +89,7 @@ export async function registerHostelAdmin(data : string) {
                 role : "Admin",
                 isVerified : false,
                 isRequestApproved : false,
+                academicYear : currentAcademicYear
                 }
             })
 
@@ -99,7 +104,8 @@ export async function registerHostelAdmin(data : string) {
                 adminEmail : parsedData.email,
                 adminPhone : parsedData.phone,
                 adminPassword : hashedPassword,
-                adminAddress : parsedData.address
+                adminAddress : parsedData.address,
+                academicYear : currentAcademicYear
             }
            });
 
