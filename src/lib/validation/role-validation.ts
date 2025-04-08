@@ -25,7 +25,7 @@ export const isValidSuperAdmin = async() => {
         if(session?.user?.role !== "SuperAdmin"){
             throw new Error("You are not authorized to access this page")
         }
-        const user = await prisma.auth.findUnique({
+        const user = await prisma.auth.findFirst({
             where : {
                 userInEmail : session?.user?.email
             }
@@ -57,7 +57,7 @@ export const isValidAdmin = async() => {
         if(session?.user?.role !== "Admin"){
             throw new Error("You are not authorized to access this page")
         }
-        const user = await prisma.auth.findUnique({
+        const user = await prisma.auth.findFirst({
             where : {
                 userInEmail : session?.user?.email
             }
@@ -85,7 +85,7 @@ export const isValidStudent = async() => {
         if(session?.user?.role !== "Student"){
             throw new Error("You are not authorized to access this page")
         }
-        const user = await prisma.auth.findUnique({
+        const user = await prisma.auth.findFirst({
             where : {
                 userInEmail : session?.user?.email
             }

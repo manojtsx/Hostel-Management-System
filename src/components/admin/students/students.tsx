@@ -45,16 +45,22 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useState } from "react"
+import useStudentMutations from "./StudentMutations"
 
 interface Student {
-  id: number
   studentId: string
-  name: string
-  email: string
-  phone: string
-  room: string
-  status: "Active" | "Inactive"
-  checkInDate: string
+  studentGeneratedId: string
+  studentName: string
+  studentEmail: string
+  studentPhone: string
+  studentRoom: string
+  studentStatus: "Active" | "Inactive"
+  studentCheckInDate: string
+  studentGender: string
+  studentGuardianName: string
+  studentGuardianPhone: string
+  studentGuardianAddress: string
+  studentGuardianRelation: string
 }
 
 const getStatusColor = (status: string) => {
@@ -78,13 +84,18 @@ interface StudentFormProps {
 function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
   const [formData, setFormData] = useState<Partial<Student>>(
     student || {
-      studentId: "",
-      name: "",
-      email: "",
-      phone: "",
-      room: "",
-      status: "Active",
-      checkInDate: new Date().toISOString().split("T")[0],
+      studentGeneratedId: "",
+      studentName: "",
+      studentEmail: "",
+      studentPhone: "",
+      studentRoom: "",
+      studentStatus: "Active",
+      studentCheckInDate: new Date().toISOString().split("T")[0],
+      studentGender: "Male",
+      studentGuardianName: "",
+      studentGuardianPhone: "",
+      studentGuardianAddress: "",
+      studentGuardianRelation: "Parent"
     }
   )
 
@@ -95,97 +106,147 @@ function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="studentId" className="text-right">
-          Student ID
-        </Label>
-        <Input
-          id="studentId"
-          value={formData.studentId}
-          onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
-          className="col-span-3"
-          required
-        />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="studentGeneratedId">Student ID</Label>
+          <Input
+            id="studentGeneratedId"
+            value={formData.studentGeneratedId}
+            placeholder="Student ID will be generated automatically"
+            disabled
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="studentName">Name</Label>
+          <Input
+            id="studentName"
+            value={formData.studentName}
+            onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="studentEmail">Email</Label>
+          <Input
+            id="studentEmail"
+            type="email"
+            value={formData.studentEmail}
+            onChange={(e) => setFormData({ ...formData, studentEmail: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="studentPhone">Phone</Label>
+          <Input
+            id="studentPhone"
+            value={formData.studentPhone}
+            onChange={(e) => setFormData({ ...formData, studentPhone: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="studentRoom">Room</Label>
+          <Input
+            id="studentRoom"
+            value={formData.studentRoom}
+            onChange={(e) => setFormData({ ...formData, studentRoom: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="studentGender">Gender</Label>
+          <Select
+            value={formData.studentGender}
+            onValueChange={(value) => setFormData({ ...formData, studentGender: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select gender" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Male">Male</SelectItem>
+              <SelectItem value="Female">Female</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="status">Status</Label>
+          <Select
+            value={formData.studentStatus}
+            onValueChange={(value) => setFormData({ ...formData, studentStatus: value as Student["studentStatus"] })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="Inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="studentCheckInDate">Check-in Date</Label>
+          <Input
+            id="studentCheckInDate"
+            type="date"
+            value={formData.studentCheckInDate}
+            onChange={(e) => setFormData({ ...formData, studentCheckInDate: e.target.value })}
+            required
+          />
+        </div>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="name" className="text-right">
-          Name
-        </Label>
-        <Input
-          id="name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="col-span-3"
-          required
-        />
+
+      <div className="border-t pt-4">
+        <h3 className="text-lg font-medium mb-4">Guardian Information</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="studentGuardianName">Guardian Name</Label>
+            <Input
+              id="studentGuardianName"
+              value={formData.studentGuardianName}
+              onChange={(e) => setFormData({ ...formData, studentGuardianName: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="studentGuardianPhone">Guardian Phone</Label>
+            <Input
+              id="studentGuardianPhone"
+              value={formData.studentGuardianPhone}
+              onChange={(e) => setFormData({ ...formData, studentGuardianPhone: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="studentGuardianAddress">Guardian Address</Label>
+            <Input
+              id="studentGuardianAddress"
+              value={formData.studentGuardianAddress}
+              onChange={(e) => setFormData({ ...formData, studentGuardianAddress: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="studentGuardianRelation">Relation</Label>
+            <Select
+              value={formData.studentGuardianRelation}
+              onValueChange={(value) => setFormData({ ...formData, studentGuardianRelation: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select relation" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Parent">Parent</SelectItem>
+                <SelectItem value="Guardian">Guardian</SelectItem>
+                <SelectItem value="Relative">Relative</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="email" className="text-right">
-          Email
-        </Label>
-        <Input
-          id="email"
-          type="email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="col-span-3"
-          required
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="phone" className="text-right">
-          Phone
-        </Label>
-        <Input
-          id="phone"
-          value={formData.phone}
-          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          className="col-span-3"
-          required
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="room" className="text-right">
-          Room
-        </Label>
-        <Input
-          id="room"
-          value={formData.room}
-          onChange={(e) => setFormData({ ...formData, room: e.target.value })}
-          className="col-span-3"
-          required
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="status" className="text-right">
-          Status
-        </Label>
-        <Select
-          value={formData.status}
-          onValueChange={(value) => setFormData({ ...formData, status: value as Student["status"] })}
-        >
-          <SelectTrigger className="col-span-3">
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Active">Active</SelectItem>
-            <SelectItem value="Inactive">Inactive</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="checkInDate" className="text-right">
-          Check-in Date
-        </Label>
-        <Input
-          id="checkInDate"
-          type="date"
-          value={formData.checkInDate}
-          onChange={(e) => setFormData({ ...formData, checkInDate: e.target.value })}
-          className="col-span-3"
-          required
-        />
-      </div>
+
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
           Cancel
@@ -208,37 +269,63 @@ function ViewStudentDialog({ student, onClose }: { student: Student; onClose: ()
             View detailed information about the student
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Student ID</Label>
-              <p className="text-sm">{student.studentId}</p>
+              <p className="text-sm">{student.studentGeneratedId}</p>
             </div>
             <div>
               <Label>Name</Label>
-              <p className="text-sm">{student.name}</p>
+              <p className="text-sm">{student.studentName}</p>
             </div>
             <div>
               <Label>Email</Label>
-              <p className="text-sm">{student.email}</p>
+              <p className="text-sm">{student.studentEmail}</p>
             </div>
             <div>
               <Label>Phone</Label>
-              <p className="text-sm">{student.phone}</p>
+              <p className="text-sm">{student.studentPhone}</p>
             </div>
             <div>
               <Label>Room</Label>
-              <p className="text-sm">{student.room}</p>
+              <p className="text-sm">{student.studentRoom}</p>
+            </div>
+            <div>
+              <Label>Gender</Label>
+              <p className="text-sm">{student.studentGender}</p>
             </div>
             <div>
               <Label>Status</Label>
-              <Badge className={getStatusColor(student.status)}>
-                {student.status}
+              <Badge className={getStatusColor(student.studentStatus)}>
+                {student.studentStatus}
               </Badge>
             </div>
             <div>
               <Label>Check-in Date</Label>
-              <p className="text-sm">{student.checkInDate}</p>
+              <p className="text-sm">{student.studentCheckInDate}</p>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-lg font-medium mb-4">Guardian Information</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Guardian Name</Label>
+                <p className="text-sm">{student.studentGuardianName}</p>
+              </div>
+              <div>
+                <Label>Guardian Phone</Label>
+                <p className="text-sm">{student.studentGuardianPhone}</p>
+              </div>
+              <div>
+                <Label>Guardian Address</Label>
+                <p className="text-sm">{student.studentGuardianAddress}</p>
+              </div>
+              <div>
+                <Label>Relation</Label>
+                <p className="text-sm">{student.studentGuardianRelation}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -253,55 +340,31 @@ function ViewStudentDialog({ student, onClose }: { student: Student; onClose: ()
 }
 
 export function StudentsManagement() {
-  const [students, setStudents] = useState<Student[]>([
-    {
-      id: 1,
-      studentId: "ST001",
-      name: "John Doe",
-      email: "john.doe@example.com",
-      phone: "+1234567890",
-      room: "101-A",
-      status: "Active",
-      checkInDate: "2024-01-01",
-    },
-    {
-      id: 2,
-      studentId: "ST002",
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      phone: "+1234567891",
-      room: "102-B",
-      status: "Active",
-      checkInDate: "2024-01-15",
-    },
-    {
-      id: 3,
-      studentId: "ST003",
-      name: "Bob Johnson",
-      email: "bob.johnson@example.com",
-      phone: "+1234567892",
-      room: "103-C",
-      status: "Inactive",
-      checkInDate: "2024-02-01",
-    },
-  ])
+  const [students, setStudents] = useState<Student[]>([])
 
   const [isAddStudentDialogOpen, setIsAddStudentDialogOpen] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const [viewMode, setViewMode] = useState<"view" | "edit" | null>(null)
 
-  const handleAddStudent = (newStudent: Partial<Student>) => {
+  const {createStudent} = useStudentMutations();
+  const handleAddStudent = async(newStudent: Partial<Student>) => {
     const student: Student = {
-      id: students.length + 1,
       studentId: newStudent.studentId!,
-      name: newStudent.name!,
-      email: newStudent.email!,
-      phone: newStudent.phone!,
-      room: newStudent.room!,
-      status: newStudent.status as Student["status"],
-      checkInDate: newStudent.checkInDate || new Date().toISOString().split("T")[0],
+      studentGeneratedId: newStudent.studentGeneratedId!,
+      studentName: newStudent.studentName!,
+      studentEmail: newStudent.studentEmail!,
+      studentPhone: newStudent.studentPhone!,
+      studentRoom: newStudent.studentRoom!,
+      studentStatus: newStudent.studentStatus as Student["studentStatus"],
+      studentCheckInDate: newStudent.studentCheckInDate || new Date().toISOString().split("T")[0],
+      studentGender: newStudent.studentGender!,
+      studentGuardianName: newStudent.studentGuardianName!,
+      studentGuardianPhone: newStudent.studentGuardianPhone!,
+      studentGuardianAddress: newStudent.studentGuardianAddress!,
+      studentGuardianRelation: newStudent.studentGuardianRelation!
     }
 
+    await createStudent(JSON.stringify(student))
     setStudents([...students, student])
     setIsAddStudentDialogOpen(false)
   }
@@ -310,7 +373,7 @@ export function StudentsManagement() {
     if (!selectedStudent) return
 
     setStudents(students.map(student =>
-      student.id === selectedStudent.id
+      student.studentId === selectedStudent.studentId
         ? { ...student, ...updatedStudent }
         : student
     ))
@@ -318,14 +381,14 @@ export function StudentsManagement() {
     setViewMode(null)
   }
 
-  const handleDeleteStudent = (studentId: number) => {
-    setStudents(students.filter(student => student.id !== studentId))
+  const handleDeleteStudent = (studentId: string) => {
+    setStudents(students.filter(student => student.studentId !== studentId))
   }
 
-  const handleActiveToggle = (studentId: number, status: "Active" | "Inactive") => {
+  const handleActiveToggle = (studentId: string, status: "Active" | "Inactive") => {
     setStudents(students.map(student =>
-      student.id === studentId
-        ? { ...student, status }
+      student.studentId === studentId
+        ? { ...student, studentStatus: status }
         : student
     ))
   }
@@ -384,33 +447,33 @@ export function StudentsManagement() {
             </TableHeader>
             <TableBody>
               {students.map((student) => (
-                <TableRow key={student.id}>
+                <TableRow key={student.studentId}>
                   <TableCell className="font-medium">{student.studentId}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      {student.name}
+                      {student.studentName}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4" />
-                        <span className="text-sm">{student.email}</span>
+                        <span className="text-sm">{student.studentEmail}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Phone className="h-4 w-4" />
-                        <span className="text-sm">{student.phone}</span>
+                        <span className="text-sm">{student.studentPhone}</span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{student.room}</TableCell>
+                  <TableCell>{student.studentRoom}</TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(student.status)}>
-                      {student.status}
+                    <Badge className={getStatusColor(student.studentStatus)}>
+                      {student.studentStatus}
                     </Badge>
                   </TableCell>
-                  <TableCell>{student.checkInDate}</TableCell>
+                  <TableCell>{student.studentCheckInDate}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -430,14 +493,14 @@ export function StudentsManagement() {
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => {
-                            handleActiveToggle(student.id, "Active")
+                            handleActiveToggle(student.studentId, "Active")
                           }}>
                           <Check className="mr-2 h-4 w-4" />
                           Mark as Active
                         </DropdownMenuItem>
                         <DropdownMenuItem
                         onClick={() => {
-                          handleActiveToggle(student.id, "Inactive")
+                          handleActiveToggle(student.studentId, "Inactive")
                         }}>
                           <X className="mr-2 h-4 w-4" />
                           Mark as Inactive
@@ -452,7 +515,7 @@ export function StudentsManagement() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-red-600"
-                          onClick={() => handleDeleteStudent(student.id)}
+                          onClick={() => handleDeleteStudent(student.studentId)}
                         >
                           Delete Student
                         </DropdownMenuItem>

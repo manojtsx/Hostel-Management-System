@@ -1,12 +1,15 @@
 "use client";
 
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { getSystemSettings } from "../HomeServer";
+import { useQuery } from "@tanstack/react-query";
 
-export function Navbar() {
+export function Navbar({systemSettings} : {systemSettings : any}) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -14,8 +17,9 @@ export function Navbar() {
       <div className="flex h-16 items-center px-4 container mx-auto">
         <div className="flex items-center space-x-4">
           <Link href="/" className="text-xl font-bold">
-            Hostel Management
-          </Link>
+           {/* Show only first two words of systemName */}
+            {systemSettings?.systemName?.split(" ").slice(0, 2).join(" ")}
+          </Link> 
         </div>
 
         {/* Desktop Navigation */}

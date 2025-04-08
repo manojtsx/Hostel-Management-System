@@ -4,8 +4,15 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import z from "zod";
 import { Adapter } from "next-auth/adapters";
-import bcrypt from "bcrypt";
-import { Role } from "@prisma/client";
+import bcrypt from "bcryptjs";
+
+// Define Role enum to match schema
+enum Role {
+  SuperAdmin = "SuperAdmin",
+  Admin = "Admin",
+  Student = "Student",
+  User = "User"
+}
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma) as Adapter,

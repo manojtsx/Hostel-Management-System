@@ -1,29 +1,44 @@
+"use client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Navbar } from "@/components/layout/navbar"
-import { Building2, GraduationCap, Shield, Users, Search, User, LogIn } from "lucide-react"
+import { Building2, GraduationCap, Shield, Users, Search, User, LogIn, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { getSystemSettings } from "./HomeServer"
+import { useQuery } from "@tanstack/react-query"
 
 export default function Home() {
+  const { data: systemSettings, isLoading: isSystemSettingsLoading } = useQuery({
+    queryKey: ["system-settings"],
+    queryFn: ()=>getSystemSettings(),
+  });
+
+  if(isSystemSettingsLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="w-10 h-10 animate-spin" />
+      </div>
+    )
+  }
   return (
     <div className="min-h-screen">
-      <Navbar />
+      <Navbar systemSettings={systemSettings} />
       
       {/* Hero Section */}
       <section className="py-20 px-4 bg-gradient-to-b from-primary/10 to-background">
         <div className="container mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Welcome to Hostel Management System
+            Welcome to {systemSettings?.systemName}
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Streamline your hostel management process with our comprehensive solution. 
+            Streamline your {systemSettings?.systemName?.toLowerCase().split(" ").slice(0, 2).join(" ")} process with our comprehensive solution. 
             Easy to use, secure, and efficient.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/student/register">
               <Button size="lg">Get Started</Button>
             </Link>
-            <Link href="/admin/login">
+            <Link href="/login/admin">
               <Button size="lg" variant="outline">Admin Login</Button>
             </Link>
           </div>
@@ -92,6 +107,12 @@ export default function Home() {
           <h2 className="text-3xl font-bold mb-6">Ready to Get Started?</h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join thousands of students who are already using our platform to manage their hostel experience.
+          </p>
+          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+            For any queries, please contact us at&nbsp;
+            <a href={`mailto:${systemSettings?.systemEmail}`} className="text-primary">
+              {systemSettings?.systemEmail}
+            </a>
           </p>
           <Link href="/student/register">
             <Button size="lg">Register Now</Button>
