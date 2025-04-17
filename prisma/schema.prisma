@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "./node_modules/@prisma/client" 
 }
 
 datasource db {
@@ -262,3 +263,31 @@ model HostelStudent {
 
   @@map("students")
 }
+
+// model of room
+
+enum RoomType{
+  Single
+  Double
+  Triple
+}
+
+model HostelRoom{
+  id Int @id @default(autoincrement())
+  roomId String @unique @default(uuid())
+  roomNumber String
+  roomCapacity String
+  roomFloor String
+  roomType RoomType @default(Single)
+  roomPricePerMonth String
+  roomBuilding String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  hostelId String 
+  academicYear Int
+
+  @@unique([roomNumber, hostelId])
+
+  @@map("rooms")
+}
+

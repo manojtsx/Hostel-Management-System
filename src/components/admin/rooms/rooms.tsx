@@ -46,10 +46,10 @@ import { MoreHorizontal, Plus, BedDouble, Users, User, Eye, Pencil } from "lucid
 import { toast } from "sonner"
 
 interface Room {
-  id: string
-  number: string
-  type: "Single" | "Double" | "Triple"
-  capacity: number
+  roomId: string
+  roomNumber: string
+  roomType: "Single" | "Double" | "Triple"
+  roomCapacity: number
   occupied: number
   status: "available" | "occupied" | "maintenance"
   occupants: {
@@ -59,9 +59,9 @@ interface Room {
     checkInDate: string
     checkOutDate?: string
   }[]
-  price: number
-  floor: string
-  building: string
+  roomPricePerMonth: number
+  roomFloor: string
+  roomBuilding: string
 }
 
 const getStatusColor = (status: string) => {
@@ -91,15 +91,15 @@ function ViewRoomDialog({ room, onClose }: { room: Room; onClose: () => void }) 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Room Number</Label>
-              <p className="text-sm">{room.number}</p>
+              <p className="text-sm">{room.roomNumber}</p>
             </div>
             <div>
               <Label>Type</Label>
-              <p className="text-sm">{room.type}</p>
+              <p className="text-sm">{room.roomType}</p>
             </div>
             <div>
               <Label>Capacity</Label>
-              <p className="text-sm">{room.capacity}</p>
+              <p className="text-sm">{room.roomCapacity}</p>
             </div>
             <div>
               <Label>Occupied</Label>
@@ -113,11 +113,11 @@ function ViewRoomDialog({ room, onClose }: { room: Room; onClose: () => void }) 
             </div>
             <div>
               <Label>Price</Label>
-              <p className="text-sm">${room.price}/month</p>
+              <p className="text-sm">${room.roomPricePerMonth}/month</p>
             </div>
             <div>
               <Label>Location</Label>
-              <p className="text-sm">Building {room.building}, Floor {room.floor}</p>
+              <p className="text-sm">Building {room.roomBuilding}, Floor {room.roomFloor}</p>
             </div>
           </div>
           <div>
@@ -155,10 +155,10 @@ function ViewRoomDialog({ room, onClose }: { room: Room; onClose: () => void }) 
 export function RoomsManagement() {
   const [rooms, setRooms] = useState<Room[]>([
     {
-      id: "101",
-      number: "101",
-      type: "Single",
-      capacity: 4,
+      roomId: "101",
+      roomNumber: "101",
+      roomType: "Single",
+      roomCapacity: 4,
       occupied: 3,
       status: "occupied",
       occupants: [
@@ -182,15 +182,15 @@ export function RoomsManagement() {
           checkOutDate: "2024-03-17",
         },
       ],
-      price: 1000,
-      floor: "1",
-      building: "A",
+      roomPricePerMonth: 1000,
+      roomFloor: "1",
+      roomBuilding: "A",
     },
     {
-      id: "102",
-      number: "102",
-      type: "Double",
-      capacity: 8,
+      roomId: "102",
+      roomNumber: "102",
+      roomType: "Double",
+      roomCapacity: 8,
       occupied: 5,
       status: "occupied",
       occupants: [
@@ -227,9 +227,9 @@ export function RoomsManagement() {
           checkOutDate: "2024-03-18",
         },
       ],
-      price: 2000,
-      floor: "1",
-      building: "A",
+      roomPricePerMonth: 2000,
+      roomFloor: "1",
+      roomBuilding: "A",
     },
   ])
 
@@ -242,22 +242,22 @@ export function RoomsManagement() {
   })
 
   const handleAddRoom = () => {
-    if (!newRoom.number || !newRoom.type || !newRoom.capacity || !newRoom.price || !newRoom.floor || !newRoom.building) {
+    if (!newRoom.roomNumber || !newRoom.roomType || !newRoom.roomCapacity || !newRoom.roomPricePerMonth || !newRoom.roomFloor || !newRoom.roomBuilding) {
       toast.error("Please fill in all required fields")
       return
     }
 
     const room: Room = {
-      id: newRoom.number,
-      number: newRoom.number,
-      type: newRoom.type as Room["type"],
-      capacity: newRoom.capacity,
+      roomId: newRoom.roomNumber,
+      roomNumber: newRoom.roomNumber,
+      roomType: newRoom.roomType as Room["roomType"],
+      roomCapacity: newRoom.roomCapacity,
       occupied: 0,
       status: "available",
       occupants: [],
-      price: newRoom.price,
-      floor: newRoom.floor,
-      building: newRoom.building,
+      roomPricePerMonth: newRoom.roomPricePerMonth,
+      roomFloor: newRoom.roomFloor,
+      roomBuilding: newRoom.roomBuilding,
     }
 
     setRooms([...rooms, room])
@@ -267,21 +267,21 @@ export function RoomsManagement() {
   }
 
   const handleEditRoom = () => {
-    if (!selectedRoom || !newRoom.number || !newRoom.type || !newRoom.capacity || !newRoom.price || !newRoom.floor || !newRoom.building) {
+    if (!selectedRoom || !newRoom.roomNumber || !newRoom.roomType || !newRoom.roomCapacity || !newRoom.roomPricePerMonth || !newRoom.roomFloor || !newRoom.roomBuilding) {
       toast.error("Please fill in all required fields")
       return
     }
 
     setRooms(rooms.map(room =>
-      room.id === selectedRoom.id
+      room.roomId === selectedRoom.roomId
         ? {
             ...room,
-            number: newRoom.number!,
-            type: newRoom.type as Room["type"],
-            capacity: newRoom.capacity!,
-            price: newRoom.price!,
-            floor: newRoom.floor!,
-            building: newRoom.building!,
+            roomNumber: newRoom.roomNumber!,
+            roomType: newRoom.roomType as Room["roomType"],
+            roomCapacity: newRoom.roomCapacity!,
+            roomPricePerMonth: newRoom.roomPricePerMonth!,
+            roomFloor: newRoom.roomFloor!,
+            roomBuilding: newRoom.roomBuilding!,
           }
         : room
     ))
@@ -293,13 +293,13 @@ export function RoomsManagement() {
 
   const handleUpdateStatus = (id: string, status: Room["status"]) => {
     setRooms(rooms.map(room => 
-      room.id === id ? { ...room, status } : room
+      room.roomId === id ? { ...room, status } : room
     ))
     toast.success("Status updated successfully")
   }
 
   const handleDeleteRoom = (id: string) => {
-    setRooms(rooms.filter(room => room.id !== id))
+    setRooms(rooms.filter(room => room.roomId !== id))
     toast.success("Room removed successfully")
   }
 
@@ -329,18 +329,18 @@ export function RoomsManagement() {
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="number">Room Number</Label>
+                  <Label htmlFor="roomNumber">Room Number</Label>
                   <Input
-                    id="number"
-                    value={newRoom.number || ""}
-                    onChange={(e) => setNewRoom({ ...newRoom, number: e.target.value })}
+                    id="roomNumber"
+                    value={newRoom.roomNumber || ""}
+                    onChange={(e) => setNewRoom({ ...newRoom, roomNumber: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="type">Room Type</Label>
+                  <Label htmlFor="roomType">Room Type</Label>
                   <Select
-                    value={newRoom.type}
-                    onValueChange={(value) => setNewRoom({ ...newRoom, type: value as Room["type"] })}
+                    value={newRoom.roomType}
+                    onValueChange={(value) => setNewRoom({ ...newRoom, roomType: value as Room["roomType"] })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
@@ -355,39 +355,39 @@ export function RoomsManagement() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="capacity">Capacity</Label>
+                  <Label htmlFor="roomCapacity">Capacity</Label>
                   <Input
-                    id="capacity"
+                    id="roomCapacity"
                     type="number"
-                    value={newRoom.capacity || ""}
-                    onChange={(e) => setNewRoom({ ...newRoom, capacity: parseInt(e.target.value) })}
+                    value={newRoom.roomCapacity || ""}
+                    onChange={(e) => setNewRoom({ ...newRoom, roomCapacity: parseInt(e.target.value) })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price (per month)</Label>
+                  <Label htmlFor="roomPricePerMonth">Price (per month)</Label>
                   <Input
-                    id="price"
+                    id="roomPricePerMonth"
                     type="number"
-                    value={newRoom.price || ""}
-                    onChange={(e) => setNewRoom({ ...newRoom, price: parseInt(e.target.value) })}
+                    value={newRoom.roomPricePerMonth || ""}
+                    onChange={(e) => setNewRoom({ ...newRoom, roomPricePerMonth: parseInt(e.target.value) })}
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="floor">Floor</Label>
+                  <Label htmlFor="roomFloor">Floor</Label>
                   <Input
-                    id="floor"
-                    value={newRoom.floor || ""}
-                    onChange={(e) => setNewRoom({ ...newRoom, floor: e.target.value })}
+                    id="roomFloor"
+                    value={newRoom.roomFloor || ""}
+                    onChange={(e) => setNewRoom({ ...newRoom, roomFloor: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="building">Building</Label>
+                  <Label htmlFor="roomBuilding">Building</Label>
                   <Input
-                    id="building"
-                    value={newRoom.building || ""}
-                    onChange={(e) => setNewRoom({ ...newRoom, building: e.target.value })}
+                    id="roomBuilding"
+                    value={newRoom.roomBuilding || ""}
+                    onChange={(e) => setNewRoom({ ...newRoom, roomBuilding: e.target.value })}
                   />
                 </div>
               </div>
@@ -431,11 +431,11 @@ export function RoomsManagement() {
             </TableHeader>
             <TableBody>
               {rooms.map((room) => (
-                <TableRow key={room.id}>
-                  <TableCell className="font-medium">{room.number}</TableCell>
-                  <TableCell>{room.type}</TableCell>
+                <TableRow key={room.roomId}>
+                  <TableCell className="font-medium">{room.roomNumber}</TableCell>
+                  <TableCell>{room.roomType}</TableCell>
                   <TableCell>
-                    {room.occupied}/{room.capacity}
+                    {room.occupied}/{room.roomCapacity}
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
@@ -462,9 +462,9 @@ export function RoomsManagement() {
                       {room.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>${room.price}/month</TableCell>
+                  <TableCell>${room.roomPricePerMonth}/month</TableCell>
                   <TableCell>
-                    Building {room.building}, Floor {room.floor}
+                    Building {room.roomBuilding}, Floor {room.roomFloor}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -484,12 +484,12 @@ export function RoomsManagement() {
                         <DropdownMenuItem onClick={() => {
                           setSelectedRoom(room)
                           setNewRoom({
-                            number: room.number,
-                            type: room.type,
-                            capacity: room.capacity,
-                            price: room.price,
-                            floor: room.floor,
-                            building: room.building,
+                            roomNumber: room.roomNumber,
+                            roomType: room.roomType,
+                            roomCapacity: room.roomCapacity,
+                            roomPricePerMonth: room.roomPricePerMonth,
+                            roomFloor: room.roomFloor,
+                            roomBuilding: room.roomBuilding,
                             status: room.status,
                             occupants: room.occupants,
                           })
@@ -499,19 +499,19 @@ export function RoomsManagement() {
                           Edit Room
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleUpdateStatus(room.id, "available")}
+                          onClick={() => handleUpdateStatus(room.roomId, "available")}
                         >
                           <BedDouble className="mr-2 h-4 w-4" />
                           Set Available
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleUpdateStatus(room.id, "maintenance")}
+                          onClick={() => handleUpdateStatus(room.roomId, "maintenance")}
                         >
                           <BedDouble className="mr-2 h-4 w-4" />
                           Set Maintenance
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDeleteRoom(room.id)}
+                          onClick={() => handleDeleteRoom(room.roomId)}
                           className="text-red-600"
                         >
                           <BedDouble className="mr-2 h-4 w-4" />
