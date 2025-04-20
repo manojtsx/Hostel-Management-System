@@ -1,7 +1,7 @@
 "use server"
 import prisma from "@/lib/prisma"
 import { isValidAdmin } from "@/lib/validation/role-validation"
-import { Prisma } from "@prisma/client";
+import { Prisma, Status } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 function generateIDForStudent(studentName: string) {
@@ -81,5 +81,158 @@ export const addStudent = async (data: string) => {
     }
 }
 
+export const editStudent = async (data: string) => {
+    const isAdmin = await isValidAdmin();
+    if (!isAdmin) {
+        return {
+            success: false,
+            message: "You are not authorized to edit a student"
+        }
+    }
 
+    try {
+        const parsedData = JSON.parse(data);
+        await prisma.$transaction(async (tx) => {
+            const updatedStudent = await tx.hostelStudent.update({
+                where: {
+                  studentId : parsedData.studentId
+                },
+                data: {
+                    studentPhone: parsedData.studentPhone,
+                    studentName: parsedData.studentName,
+                    studentGender: parsedData.studentGender,
+                    studentCheckInDate: new Date(parsedData.studentCheckInDate),
+                    studentAddress: parsedData.studentAddress,
+                    studentRoomNumber: parsedData.studentRoomNumber,
+                    studentGuardianName: parsedData.studentGuardianName,
+                    studentGuardianPhone: parsedData.studentGuardianPhone,
+                    studentGuardianAddress: parsedData.studentGuardianAddress,
+                    studentGuardianRelation: parsedData.studentGuardianRelation,
+                }
+            });
+            await tx.auth.update({
+                where: {
+                    authId: updatedStudent.authId
+                },
+                data: {
+                    userInName: parsedData.studentName,
+                    userInPhone: parsedData.studentPhone,
+                }
+            });
 
+        });
+
+        return {
+            success: true,
+            message: "Student updated successfully"
+        }
+    } catch (err) {
+        console.error(err);
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
+            return {
+                success: false,
+                message: "Error updating student: Email or Phone already exists"
+            }
+        }
+        return {
+            success: false,
+            message: "Error updating student"
+        }
+    }
+}
+
+export const deleteStudent = async (studentId: string) => {
+    const isAdmin = await isValidAdmin();
+    if (!isAdmin) {
+        return {
+            success: false,
+            message: "You are not authorized to delete a student"
+        }
+    }
+
+    try {
+        await prisma.$transaction(async (tx) => {
+            const student = await tx.hostelStudent.findUnique({
+                where: {
+                   studentId :studentId
+                },
+                select: {
+                    authId: true
+                }
+            });
+
+            if (!student) {
+                throw new Error("Student not found");
+            }
+
+            await tx.hostelStudent.delete({
+                where: {
+                    studentId : studentId
+                }
+            });
+
+            await tx.auth.delete({
+                where: {
+                    authId: student.authId
+                }
+            });
+        });
+
+        return {
+            success: true,
+            message: "Student deleted successfully"
+        }
+    } catch (err) {
+        console.error(err);
+        return {
+            success: false,
+            message: "Error deleting student"
+        }
+    }
+}
+
+export const toggleStudentStatus = async (studentId: string) => {
+    const isAdmin = await isValidAdmin();
+    if (!isAdmin) {
+        return {
+            success: false,
+            message: "You are not authorized to update student status"
+        }
+    }
+
+    try {
+        const existingStudent = await prisma.hostelStudent.findUnique({
+            where : {
+                studentId : studentId
+            },
+            select : {
+             status : true
+            }
+        });
+        if(!existingStudent) {
+            return {
+                success: false,
+                message: "Student not found"
+            }
+        }
+        await prisma.hostelStudent.update({
+            where: {
+               studentId : studentId
+            },
+            data: {
+                status: (existingStudent.status === "active" as Status ? "inactive" : "active") as Status
+            }
+        });
+
+        return {
+            success: true,
+            message: `Student status updated to ${status}`
+        }
+    } catch (err) {
+        console.error(err);
+        return {
+            success: false,
+            message: "Error updating student status"
+        }
+    }
+}

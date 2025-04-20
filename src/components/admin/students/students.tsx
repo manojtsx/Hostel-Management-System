@@ -63,16 +63,16 @@ interface Student {
   studentGuardianRelation: string
 }
 
-const getStatusColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "active":
-      return "bg-green-500"
-    case "inactive":
-      return "bg-red-500"
-    default:
-      return "bg-gray-500"
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "active":
+        return "bg-green-500"
+      case "inactive":
+        return "bg-red-500"
+      default:
+        return "bg-gray-500"
+    }
   }
-}
 
 interface StudentFormProps {
   student?: Student
@@ -237,9 +237,9 @@ function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
                 <SelectValue placeholder="Select relation" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Parent">Parent</SelectItem>
+                <SelectItem value="Mother">Mother</SelectItem>
+                <SelectItem value="Father">Father</SelectItem>
                 <SelectItem value="Guardian">Guardian</SelectItem>
-                <SelectItem value="Relative">Relative</SelectItem>
                 <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
@@ -372,7 +372,7 @@ export function StudentsManagement() {
   const handleEditStudent = (updatedStudent: Partial<Student>) => {
     if (!selectedStudent) return
 
-    setStudents(students.map(student =>
+    setStudents(students.map(student => 
       student.studentId === selectedStudent.studentId
         ? { ...student, ...updatedStudent }
         : student
