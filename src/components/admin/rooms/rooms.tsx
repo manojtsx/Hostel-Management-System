@@ -44,6 +44,7 @@ import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
 import { MoreHorizontal, Plus, BedDouble, Users, User, Eye, Pencil } from "lucide-react"
 import { toast } from "sonner"
+import useRoomMutations from "./RoomMutations"
 
 interface Room {
   roomId: string
@@ -241,7 +242,8 @@ export function RoomsManagement() {
     occupants: [],
   })
 
-  const handleAddRoom = () => {
+  const {createRoom, isCreatingRoom} = useRoomMutations();
+  const handleAddRoom = async() => {
     if (!newRoom.roomNumber || !newRoom.roomType || !newRoom.roomCapacity || !newRoom.roomPricePerMonth || !newRoom.roomFloor || !newRoom.roomBuilding) {
       toast.error("Please fill in all required fields")
       return
@@ -260,10 +262,11 @@ export function RoomsManagement() {
       roomBuilding: newRoom.roomBuilding,
     }
 
-    setRooms([...rooms, room])
+    // setRooms([...rooms, room])
+    await createRoom(JSON.stringify(room));
+
     setIsAddDialogOpen(false)
-    setNewRoom({ status: "available", occupants: [] })
-    toast.success("Room added successfully")
+    setNewRoom({ status: "available", occupants: [] });
   }
 
   const handleEditRoom = () => {

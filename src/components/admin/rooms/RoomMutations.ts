@@ -3,7 +3,7 @@ import { addRoom } from "./RoomServer";
 import { toast } from "sonner";
 
 export default function useRoomMutations(){
-    const {mutateAsync : createRoom, isPending : isCreatingStudent} = useMutation({
+    const {mutateAsync : createRoom, isPending : isCreatingRoom} = useMutation({
         mutationFn : async(data : string) => {
             return await addRoom(data)
         },
@@ -18,5 +18,5 @@ export default function useRoomMutations(){
             toast.error(error.message)
         }
     });
-    return {createRoom, isCreatingStudent}
+    return {createRoom, isCreatingRoom}
 }

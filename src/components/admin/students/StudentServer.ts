@@ -46,7 +46,7 @@ export const addStudent = async (data: string) => {
                     studentGeneratedId: generateIDForStudent(parsedData.studentName),
                     studentEmail: parsedData.studentEmail,
                     studentPhone: parsedData.studentPhone,
-                    studentName: parsedData.studentEmail,
+                    studentName: parsedData.studentName,
                     studentGender: parsedData.studentGender,
                     studentCheckInDate: new Date(parsedData.studentCheckInDate),
                     studentAddress: parsedData.studentAddress,
@@ -77,6 +77,53 @@ export const addStudent = async (data: string) => {
         return {
             success: false,
             message: "Error adding student"
+        }
+    }
+}
+
+export const getStudents = async (currentPage : number, pageSize : number, searchQuery : string) => {
+    const isAdmin = await isValidAdmin();
+    if(!isAdmin) {
+        return {
+            success: false,
+            message: "You are not authorized to get students"
+        }
+    }
+    try{
+        let whereClause : Prisma.HostelStudentWhereInput = {
+            hostelId : isAdmin.hostelId as string
+        };
+        if(searchQuery) {
+            whereClause.studentName = {
+                contains : searchQuery,
+                mode : "insensitive"
+            }
+        } 
+        const totalStudents = await prisma.hostelStudent.count({
+            where : whereClause
+        });
+
+        const students = await prisma.hostelStudent.findMany({
+            where : whereClause,
+            take : pageSize,
+            skip : (currentPage - 1) * pageSize,
+            orderBy : {
+                studentName : "asc" 
+            }
+        })
+
+        return {
+            success : true,
+            message : "Students fetched successfully",
+            data : students,
+            total : totalStudents,
+            totalPages : Math.ceil(totalStudents / pageSize)
+        }
+    } catch (err) {
+        console.error(err);
+        return {
+            success : false,
+            message : "Error fetching students"
         }
     }
 }

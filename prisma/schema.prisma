@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "./node_modules/@prisma/client" 
 }
 
 datasource db {
@@ -199,7 +198,7 @@ model Notification {
   @@map("notifications")
 }
 
-enum PaymentMethod{
+enum PaymentMethod {
   Cash
   Card
   BankTransfer
@@ -266,13 +265,13 @@ model HostelStudent {
 
 // model of room
 
-enum RoomType{
+enum RoomType {
   Single
   Double
   Triple
 }
 
-model HostelRoom{
+model HostelRoom {
   id Int @id @default(autoincrement())
   roomId String @unique @default(uuid())
   roomNumber String

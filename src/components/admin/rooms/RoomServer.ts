@@ -2,11 +2,9 @@
 import prisma from "@/lib/prisma"
 import { isValidAdmin } from "@/lib/validation/role-validation"
 import { Prisma } from "@prisma/client";
-import bcrypt from "bcryptjs";
 
 export const addRoom = async(data: string)=>{
     const isAdmin = await isValidAdmin();
-    console.log(isAdmin, "isAdmin");
     if(!isAdmin){
         return{
             success: false,
@@ -21,13 +19,13 @@ export const addRoom = async(data: string)=>{
         await prisma.hostelRoom.create({
             data: {
                 roomNumber: parsedData.roomNumber,
-                roomCapacity: parsedData.roomCapacity,
+                roomCapacity: parsedData.roomCapacity.toString(),
                 roomFloor: parsedData.roomFloor,
                 roomType: parsedData.roomType,
-                roomPricePerMonth: parsedData.roomPricePerMonth,
+                roomPricePerMonth: parsedData.roomPricePerMonth.toString(),
                 roomBuilding: parsedData.roomBuilding,
                 hostelId: isAdmin.hostelId as string,
-                academicYear: isAdmin.academicYear.toString() as string
+                academicYear: isAdmin.academicYear as number
             }
         })
         return {

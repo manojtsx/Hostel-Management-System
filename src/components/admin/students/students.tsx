@@ -46,6 +46,9 @@ import {
 } from "@/components/ui/select"
 import { useState } from "react"
 import useStudentMutations from "./StudentMutations"
+import { useQuery } from "@tanstack/react-query"
+import { getStudents } from "./StudentServer"
+import { useDebounce } from "@/utils/debounce/usedebounce"
 
 interface Student {
   studentId: string
@@ -54,7 +57,7 @@ interface Student {
   studentEmail: string
   studentPhone: string
   studentRoom: string
-  studentStatus: "Active" | "Inactive"
+  studentStatus: "Active" | "Inactive" | "All"
   studentCheckInDate: string
   studentGender: string
   studentGuardianName: string
@@ -340,11 +343,22 @@ function ViewStudentDialog({ student, onClose }: { student: Student; onClose: ()
 }
 
 export function StudentsManagement() {
-  const [students, setStudents] = useState<Student[]>([])
 
   const [isAddStudentDialogOpen, setIsAddStudentDialogOpen] = useState(false)
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+  const [selectedStudent, setSelectedStudent] = useState<any>(null)
   const [viewMode, setViewMode] = useState<"view" | "edit" | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
+  const [selectedStatus, setSelectedStatus] = useState<Student["studentStatus"]>("Active")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  const {data : students, isLoading : isLoadingStudents} = useQuery({
+    queryKey : ["students", debouncedSearchQuery, selectedStatus, startDate, endDate, currentPage, pageSize],
+    queryFn : () => getStudents(currentPage, pageSize, debouncedSearchQuery)
+  })
 
   const {createStudent} = useStudentMutations();
   const handleAddStudent = async(newStudent: Partial<Student>) => {
@@ -365,32 +379,28 @@ export function StudentsManagement() {
     }
 
     await createStudent(JSON.stringify(student))
-    setStudents([...students, student])
     setIsAddStudentDialogOpen(false)
   }
 
   const handleEditStudent = (updatedStudent: Partial<Student>) => {
     if (!selectedStudent) return
 
-    setStudents(students.map(student => 
-      student.studentId === selectedStudent.studentId
-        ? { ...student, ...updatedStudent }
-        : student
-    ))
     setSelectedStudent(null)
     setViewMode(null)
   }
 
   const handleDeleteStudent = (studentId: string) => {
-    setStudents(students.filter(student => student.studentId !== studentId))
+    if(!selectedStudent) return
+
+    setSelectedStudent(null)
+    setViewMode(null)
   }
 
   const handleActiveToggle = (studentId: string, status: "Active" | "Inactive") => {
-    setStudents(students.map(student =>
-      student.studentId === studentId
-        ? { ...student, studentStatus: status }
-        : student
-    ))
+    if(!selectedStudent) return
+
+    setSelectedStudent(null)
+    setViewMode(null)
   }
 
   return (
@@ -433,6 +443,51 @@ export function StudentsManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+        {/* Keep the search bar and filters here */}
+        <div className="flex items-center justify-between mb-4">
+          <Input
+            placeholder="Search by name"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Select
+            value={selectedStatus}
+            onValueChange={(value) => setSelectedStatus(value as Student["studentStatus"])}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">All</SelectItem>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="Inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+          {/* Filter according to the start and end for the check in date */}
+          <div className="flex items-center gap-2">
+            <Input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+            <Input
+              id="endDate"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
+          <Button variant="outline" onClick={() => {
+            setSearchQuery("");
+            setSelectedStatus("Active");
+            setStartDate("");
+            setEndDate("");
+          }}>
+            Clear Filters
+          </Button>
+        </div>
+
           <Table>
             <TableHeader>
               <TableRow>
@@ -446,9 +501,16 @@ export function StudentsManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {students.map((student) => (
+              {
+                isLoadingStudents && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">Loading...</TableCell>
+                  </TableRow>
+                )
+              }
+              {!isLoadingStudents && students?.data?.map((student) => (
                 <TableRow key={student.studentId}>
-                  <TableCell className="font-medium">{student.studentId}</TableCell>
+                  <TableCell className="font-medium">{student.studentGeneratedId}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
@@ -467,13 +529,13 @@ export function StudentsManagement() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{student.studentRoom}</TableCell>
+                  <TableCell>{student.studentRoomNumber}</TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(student.studentStatus)}>
-                      {student.studentStatus}
+                    <Badge className={getStatusColor(student.status)}>
+                      {student.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{student.studentCheckInDate}</TableCell>
+                  <TableCell>{student.studentCheckInDate.toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
