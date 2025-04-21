@@ -240,7 +240,7 @@ model HostelStudent {
   studentPhone String
   studentGender Gender @default(Male)
   studentAddress String?
-  studentRoomNumber String?
+  studentRoomNumber String? // contains the room id of the student
   studentBedNumber String?
   status Status @default(Pending)
   studentCheckInDate DateTime
@@ -290,3 +290,63 @@ model HostelRoom {
   @@map("rooms")
 }
 
+enum AnnouncementType {
+  Maintenance
+  Information
+}
+
+enum AnnouncementPriority {
+  Low
+  Medium
+  High
+}
+
+enum AnnouncementStatus {
+  ComingSoon
+  Active
+  Completed
+}
+
+model HostelAnnouncement {
+  id Int @id @default(autoincrement())
+  announcementId String @unique @default(uuid())
+  title String
+  content String
+  type AnnouncementType @default(Information)
+  priority AnnouncementPriority @default(Low)
+  date DateTime
+  status AnnouncementStatus @default(ComingSoon)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  hostelId String
+  authId String
+  academicYear Int
+
+  @@map("announcements")
+}
+
+enum EventType {
+  Party
+  Sports
+  Cultural
+  Social  
+  Festival
+  Other
+}
+
+model HostelEvents {
+  id Int @id @default(autoincrement())
+  eventId String @unique @default(uuid())
+  title String
+  description String?
+  location String?
+  type EventType @default(Other)
+  date DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  hostelId String
+  authId String
+  academicYear Int
+
+  @@map("events")
+} 
