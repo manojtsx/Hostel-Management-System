@@ -71,6 +71,7 @@ export const isValidAdmin = async() => {
             email : user.userInEmail,
             name : user.userInName,
             role : user.role,
+            authId : user.authId,
             hostelId : user.hostelId,
             academicYear : new Date().getFullYear()
         }

@@ -1,9 +1,9 @@
-import { MealPlansManagement } from "@/components/admin/meal-palns/meal-plans"
+import MealPlanManagement from "@/components/admin/meal-plans/meal-plans"
 
 export default function MealPlansPage() {
   return (
     <div className="p-6">
-      <MealPlansManagement />
+      <MealPlanManagement />
     </div>
   )
 } 

@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/prisma"
 }
 
 datasource db {
@@ -284,6 +285,7 @@ model HostelRoom {
   updatedAt DateTime @updatedAt
   hostelId String 
   academicYear Int
+  temporaryGuests TemporaryGuest[]
 
   @@unique([roomNumber, hostelId])
 
@@ -340,6 +342,7 @@ model HostelEvents {
   title String
   description String?
   location String?
+  time String?
   type EventType @default(Other)
   date DateTime
   createdAt DateTime @default(now())
@@ -349,4 +352,69 @@ model HostelEvents {
   academicYear Int
 
   @@map("events")
+}
+
+enum MealType {
+  Breakfast
+  Lunch
+  Dinner
+}
+
+enum DayOfWeek {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+  Sunday
+}
+
+model MealPlan {
+  id Int @id @default(autoincrement())
+  mealPlanId String @unique @default(uuid())
+  title String
+  description String?
+  mealType MealType
+  dayOfWeek DayOfWeek
+  menuItems String[]
+  price Float
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  hostelId String
+  authId String
+  academicYear Int
+
+  @@map("meal_plans")
+}
+
+enum GuestStatus {
+  Pending
+  Approved
+  Rejected
+  CheckedOut
+}
+
+model TemporaryGuest {
+  id Int @id @default(autoincrement())
+  guestId String @unique @default(uuid())
+  guestName String
+  guestEmail String?
+  guestPhone String
+  guestAddress String
+  guestPurpose String
+  guestDocuments String[] // Array of document URLs
+  checkInDate DateTime
+  checkOutDate DateTime
+  status GuestStatus @default(Pending)
+  roomId String?
+  room HostelRoom? @relation(fields: [roomId], references: [roomId])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  hostelId String
+  authId String
+  academicYear Int
+
+  @@map("temporary_guests")
 } 

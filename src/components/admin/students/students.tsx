@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -8,16 +8,26 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Plus, User, Mail, Phone, MoreVertical, Eye, Pencil, Check, X } from "lucide-react"
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Plus,
+  User,
+  Mail,
+  Phone,
+  MoreVertical,
+  Eye,
+  Pencil,
+  Check,
+  X,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +35,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -34,54 +44,60 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { useState } from "react"
-import useStudentMutations from "./StudentMutations"
-import { useQuery } from "@tanstack/react-query"
-import { getStudents } from "./StudentServer"
-import { useDebounce } from "@/utils/debounce/usedebounce"
-
+} from "@/components/ui/select";
+import { useState } from "react";
+import useStudentMutations from "./StudentMutations";
+import { useQuery } from "@tanstack/react-query";
+import { getAllRooms, getStudents } from "./StudentServer";
+import { useDebounce } from "@/utils/debounce/usedebounce";
+import { Status } from "@prisma/client";
+import {
+  Pagination
+} from "@/components/pagination";
 interface Student {
-  studentId: string
-  studentGeneratedId: string
-  studentName: string
-  studentEmail: string
-  studentPhone: string
-  studentRoom: string
-  studentStatus: "Active" | "Inactive" | "All"
-  studentCheckInDate: string
-  studentGender: string
-  studentGuardianName: string
-  studentGuardianPhone: string
-  studentGuardianAddress: string
-  studentGuardianRelation: string
+  studentId: string;
+  studentGeneratedId: string;
+  studentName: string;
+  studentEmail: string;
+  studentPhone: string;
+  studentAddress: string;
+  studentRoom: string;
+  studentStatus: "Pending" | "Approved" | "Rejected" | "All";
+  studentCheckInDate: string;
+  studentGender: string;
+  studentGuardianName: string;
+  studentGuardianPhone: string;
+  studentGuardianAddress: string;
+  studentGuardianRelation: string;
 }
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "active":
-        return "bg-green-500"
-      case "inactive":
-        return "bg-red-500"
-      default:
-        return "bg-gray-500"
-    }
+const getStatusColor = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "pending":
+      return "bg-yellow-500";
+    case "approved":
+      return "bg-green-500";
+    case "rejected":
+      return "bg-red-500";
+    default:
+      return "bg-gray-500";
   }
+};
 
 interface StudentFormProps {
-  student?: Student
-  onSubmit: (student: Partial<Student>) => void
-  onCancel: () => void
-  mode: "add" | "edit"
+  student?: Student;
+  onSubmit: (student: Partial<Student>) => void;
+  onCancel: () => void;
+  mode: "add" | "edit";
 }
 
 function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
@@ -91,41 +107,41 @@ function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
       studentName: "",
       studentEmail: "",
       studentPhone: "",
+      studentAddress: "",
       studentRoom: "",
-      studentStatus: "Active",
+      studentStatus: "All",
       studentCheckInDate: new Date().toISOString().split("T")[0],
       studentGender: "Male",
       studentGuardianName: "",
       studentGuardianPhone: "",
       studentGuardianAddress: "",
-      studentGuardianRelation: "Parent"
+      studentGuardianRelation: "Parent",
     }
-  )
+  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
+  const { data: rooms, isLoading: isLoadingRooms } = useQuery({
+    queryKey: ["rooms", debouncedSearchQuery],
+    queryFn: () => getAllRooms(debouncedSearchQuery),
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit(formData)
-  }
+    e.preventDefault();
+    onSubmit(formData);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="studentGeneratedId">Student ID</Label>
-          <Input
-            id="studentGeneratedId"
-            value={formData.studentGeneratedId}
-            placeholder="Student ID will be generated automatically"
-            disabled
-            required
-          />
-        </div>
-        <div className="space-y-2">
           <Label htmlFor="studentName">Name</Label>
           <Input
             id="studentName"
             value={formData.studentName}
-            onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, studentName: e.target.value })
+            }
             required
           />
         </div>
@@ -135,7 +151,9 @@ function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
             id="studentEmail"
             type="email"
             value={formData.studentEmail}
-            onChange={(e) => setFormData({ ...formData, studentEmail: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, studentEmail: e.target.value })
+            }
             required
           />
         </div>
@@ -144,24 +162,79 @@ function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
           <Input
             id="studentPhone"
             value={formData.studentPhone}
-            onChange={(e) => setFormData({ ...formData, studentPhone: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, studentPhone: e.target.value })
+            }
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="studentAddress">Address</Label>
+          <Input
+            id="studentAddress"
+            value={formData.studentAddress}
+            onChange={(e) =>
+              setFormData({ ...formData, studentAddress: e.target.value })
+            }
             required
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="studentRoom">Room</Label>
-          <Input
-            id="studentRoom"
+          <Select
             value={formData.studentRoom}
-            onChange={(e) => setFormData({ ...formData, studentRoom: e.target.value })}
-            required
-          />
+            onValueChange={(value) =>
+              setFormData({ ...formData, studentRoom: value })
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a room" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              <div className="sticky top-0 z-10 bg-white p-2 border-b">
+                <Input
+                  placeholder="Search room by number or type..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              {isLoadingRooms ? (
+                <div className="flex items-center justify-center p-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+                </div>
+              ) : rooms?.data?.length === 0 ? (
+                <div className="p-4 text-center text-sm text-gray-500">
+                  No rooms found
+                </div>
+              ) : (
+                rooms?.data?.map((room : any) => (
+                  <SelectItem 
+                    key={room.roomId} 
+                    value={room.roomId}
+                    className="flex items-center justify-between py-2 px-4 hover:bg-gray-100 cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{room.roomNumber}</span>
+                      <span className="text-gray-500">-</span>
+                      <span className="text-gray-600">{room.roomType}</span>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      Capacity: {room.roomCapacity}
+                    </span>
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="studentGender">Gender</Label>
           <Select
             value={formData.studentGender}
-            onValueChange={(value) => setFormData({ ...formData, studentGender: value })}
+            onValueChange={(value) =>
+              setFormData({ ...formData, studentGender: value })
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Select gender" />
@@ -177,14 +250,20 @@ function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
           <Label htmlFor="status">Status</Label>
           <Select
             value={formData.studentStatus}
-            onValueChange={(value) => setFormData({ ...formData, studentStatus: value as Student["studentStatus"] })}
+            onValueChange={(value) =>
+              setFormData({
+                ...formData,
+                studentStatus: value as Student["studentStatus"],
+              })
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Active">Active</SelectItem>
-              <SelectItem value="Inactive">Inactive</SelectItem>
+              <SelectItem value="Pending">Pending</SelectItem>
+              <SelectItem value="Approved">Approved</SelectItem>
+              <SelectItem value="Rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -194,7 +273,9 @@ function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
             id="studentCheckInDate"
             type="date"
             value={formData.studentCheckInDate}
-            onChange={(e) => setFormData({ ...formData, studentCheckInDate: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, studentCheckInDate: e.target.value })
+            }
             required
           />
         </div>
@@ -208,7 +289,12 @@ function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
             <Input
               id="studentGuardianName"
               value={formData.studentGuardianName}
-              onChange={(e) => setFormData({ ...formData, studentGuardianName: e.target.value })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  studentGuardianName: e.target.value,
+                })
+              }
               required
             />
           </div>
@@ -217,7 +303,12 @@ function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
             <Input
               id="studentGuardianPhone"
               value={formData.studentGuardianPhone}
-              onChange={(e) => setFormData({ ...formData, studentGuardianPhone: e.target.value })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  studentGuardianPhone: e.target.value,
+                })
+              }
               required
             />
           </div>
@@ -226,7 +317,12 @@ function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
             <Input
               id="studentGuardianAddress"
               value={formData.studentGuardianAddress}
-              onChange={(e) => setFormData({ ...formData, studentGuardianAddress: e.target.value })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  studentGuardianAddress: e.target.value,
+                })
+              }
               required
             />
           </div>
@@ -234,7 +330,9 @@ function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
             <Label htmlFor="studentGuardianRelation">Relation</Label>
             <Select
               value={formData.studentGuardianRelation}
-              onValueChange={(value) => setFormData({ ...formData, studentGuardianRelation: value })}
+              onValueChange={(value) =>
+                setFormData({ ...formData, studentGuardianRelation: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select relation" />
@@ -259,10 +357,16 @@ function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
         </Button>
       </DialogFooter>
     </form>
-  )
+  );
 }
 
-function ViewStudentDialog({ student, onClose }: { student: Student; onClose: () => void }) {
+function ViewStudentDialog({
+  student,
+  onClose,
+}: {
+  student: Student;
+  onClose: () => void;
+}) {
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent>
@@ -306,7 +410,7 @@ function ViewStudentDialog({ student, onClose }: { student: Student; onClose: ()
             </div>
             <div>
               <Label>Check-in Date</Label>
-              <p className="text-sm">{student.studentCheckInDate}</p>
+              <p className="text-sm">{new Date(student.studentCheckInDate).toLocaleDateString()}</p>
             </div>
           </div>
 
@@ -339,69 +443,88 @@ function ViewStudentDialog({ student, onClose }: { student: Student; onClose: ()
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 export function StudentsManagement() {
+  const [isAddStudentDialogOpen, setIsAddStudentDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<"view" | "edit" | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const [selectedStatus, setSelectedStatus] =
+    useState<Student["studentStatus"]>("All");
+  const [startDate, setStartDate] = useState<Date>();
+  const [endDate, setEndDate] = useState<Date>();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  const [isAddStudentDialogOpen, setIsAddStudentDialogOpen] = useState(false)
-  const [selectedStudent, setSelectedStudent] = useState<any>(null)
-  const [viewMode, setViewMode] = useState<"view" | "edit" | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
-  const debouncedSearchQuery = useDebounce(searchQuery, 500)
-  const [selectedStatus, setSelectedStatus] = useState<Student["studentStatus"]>("Active")
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const { data: students, isLoading: isLoadingStudents } = useQuery({
+    queryKey: [
+      "students",
+      debouncedSearchQuery,
+      selectedStatus,
+      startDate,
+      endDate,
+      currentPage,
+      pageSize,
+    ],
+    queryFn: () =>
+      getStudents(currentPage, pageSize, debouncedSearchQuery, {
+        status: selectedStatus as Status,
+        startDate: startDate as Date,
+        endDate: endDate as Date,
+      }),
+  });
 
-  const {data : students, isLoading : isLoadingStudents} = useQuery({
-    queryKey : ["students", debouncedSearchQuery, selectedStatus, startDate, endDate, currentPage, pageSize],
-    queryFn : () => getStudents(currentPage, pageSize, debouncedSearchQuery)
-  })
-
-  const {createStudent} = useStudentMutations();
-  const handleAddStudent = async(newStudent: Partial<Student>) => {
+  const { createStudent, approveStudent, rejectStudent } = useStudentMutations();
+  const handleAddStudent = async (newStudent: Partial<Student>) => {
     const student: Student = {
       studentId: newStudent.studentId!,
       studentGeneratedId: newStudent.studentGeneratedId!,
       studentName: newStudent.studentName!,
       studentEmail: newStudent.studentEmail!,
       studentPhone: newStudent.studentPhone!,
+      studentAddress: newStudent.studentAddress!,
       studentRoom: newStudent.studentRoom!,
       studentStatus: newStudent.studentStatus as Student["studentStatus"],
-      studentCheckInDate: newStudent.studentCheckInDate || new Date().toISOString().split("T")[0],
+      studentCheckInDate:
+        newStudent.studentCheckInDate || new Date().toISOString().split("T")[0],
       studentGender: newStudent.studentGender!,
       studentGuardianName: newStudent.studentGuardianName!,
       studentGuardianPhone: newStudent.studentGuardianPhone!,
       studentGuardianAddress: newStudent.studentGuardianAddress!,
-      studentGuardianRelation: newStudent.studentGuardianRelation!
-    }
+      studentGuardianRelation: newStudent.studentGuardianRelation!,
+    };
 
-    await createStudent(JSON.stringify(student))
-    setIsAddStudentDialogOpen(false)
-  }
+    await createStudent(JSON.stringify(student));
+    setIsAddStudentDialogOpen(false);
+  };
 
   const handleEditStudent = (updatedStudent: Partial<Student>) => {
-    if (!selectedStudent) return
+    if (!selectedStudent) return;
 
-    setSelectedStudent(null)
-    setViewMode(null)
-  }
+    setSelectedStudent(null);
+    setViewMode(null);
+  };
 
-  const handleDeleteStudent = (studentId: string) => {
-    if(!selectedStudent) return
+  const { removeStudent, isRemovingStudent } = useStudentMutations();
+  const handleDeleteStudent = async (studentId: string) => {
+    if (!selectedStudent) return;
+    await removeStudent(studentId);
+    setSelectedStudent(null);
+    setViewMode(null);
+  };
 
-    setSelectedStudent(null)
-    setViewMode(null)
-  }
+  const handleActiveToggle = (
+    studentId: string,
+    status: "Pending" | "Approved" | "Rejected" | "All"
+  ) => {
+    if (!selectedStudent) return;
 
-  const handleActiveToggle = (studentId: string, status: "Active" | "Inactive") => {
-    if(!selectedStudent) return
-
-    setSelectedStudent(null)
-    setViewMode(null)
-  }
+    setSelectedStudent(null);
+    setViewMode(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -412,7 +535,10 @@ export function StudentsManagement() {
             Manage student information and room allocations
           </p>
         </div>
-        <Dialog open={isAddStudentDialogOpen} onOpenChange={setIsAddStudentDialogOpen}>
+        <Dialog
+          open={isAddStudentDialogOpen}
+          onOpenChange={setIsAddStudentDialogOpen}
+        >
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -443,50 +569,56 @@ export function StudentsManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-        {/* Keep the search bar and filters here */}
-        <div className="flex items-center justify-between mb-4">
-          <Input
-            placeholder="Search by name"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Select
-            value={selectedStatus}
-            onValueChange={(value) => setSelectedStatus(value as Student["studentStatus"])}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All</SelectItem>
-              <SelectItem value="Active">Active</SelectItem>
-              <SelectItem value="Inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-          {/* Filter according to the start and end for the check in date */}
-          <div className="flex items-center gap-2">
+          {/* Keep the search bar and filters here */}
+          <div className="flex items-center justify-between mb-4">
             <Input
-              id="startDate"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              placeholder="Search by name"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <Input
-              id="endDate"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
+            <Select
+              value={selectedStatus}
+              onValueChange={(value) =>
+                setSelectedStatus(value as Student["studentStatus"])
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Approved">Approved</SelectItem>
+                <SelectItem value="Rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+            {/* Filter according to the start and end for the check in date */}
+            <div className="flex items-center gap-2">
+              <Input
+                id="startDate"
+                type="date"
+                value={startDate?.toISOString().split("T")[0]}
+                onChange={(e) => setStartDate(new Date(e.target.value))}
+              />
+              <Input
+                id="endDate"
+                type="date"
+                value={endDate?.toISOString().split("T")[0]}
+                onChange={(e) => setEndDate(new Date(e.target.value))}
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedStatus("All");
+                setStartDate(undefined);
+                setEndDate(undefined);
+              }}
+            >
+              Clear Filters
+            </Button>
           </div>
-          <Button variant="outline" onClick={() => {
-            setSearchQuery("");
-            setSelectedStatus("Active");
-            setStartDate("");
-            setEndDate("");
-          }}>
-            Clear Filters
-          </Button>
-        </div>
 
           <Table>
             <TableHeader>
@@ -501,93 +633,119 @@ export function StudentsManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {
-                isLoadingStudents && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">Loading...</TableCell>
-                  </TableRow>
-                )
-              }
-              {!isLoadingStudents && students?.data?.map((student) => (
-                <TableRow key={student.studentId}>
-                  <TableCell className="font-medium">{student.studentGeneratedId}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      {student.studentName}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        <span className="text-sm">{student.studentEmail}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        <span className="text-sm">{student.studentPhone}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{student.studentRoomNumber}</TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(student.status)}>
-                      {student.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{student.studentCheckInDate.toLocaleDateString()}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedStudent(student)
-                          setViewMode("view")
-                        }}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => {
-                            handleActiveToggle(student.studentId, "Active")
-                          }}>
-                          <Check className="mr-2 h-4 w-4" />
-                          Mark as Active
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                        onClick={() => {
-                          handleActiveToggle(student.studentId, "Inactive")
-                        }}>
-                          <X className="mr-2 h-4 w-4" />
-                          Mark as Inactive
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedStudent(student)
-                          setViewMode("edit")
-                        }}>
-                          <Pencil className="mr-2 h-4 w-4" />
-                          Edit Details
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => handleDeleteStudent(student.studentId)}
-                        >
-                          Delete Student
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {isLoadingStudents && (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center">
+                    Loading...
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
+              {!isLoadingStudents &&
+                students?.data?.map((student) => (
+                  <TableRow key={student.studentId}>
+                    <TableCell className="font-medium">
+                      {student.studentGeneratedId}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        {student.studentName}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          <span className="text-sm">
+                            {student.studentEmail}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          <span className="text-sm">
+                            {student.studentPhone}
+                          </span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{student.room?.roomNumber}</TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(student.status)}>
+                        {student.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(student.studentCheckInDate).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedStudent(student);
+                              setViewMode("view");
+                            }}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={async() => {
+                              await approveStudent(student.studentId);
+                            }}
+                          >
+                            <Check className="mr-2 h-4 w-4" />
+                            Mark as Approved
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={async() => {
+                              await rejectStudent(student.studentId);
+                            }}
+                          >
+                            <X className="mr-2 h-4 w-4" />
+                            Mark as Rejected
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedStudent(student);
+                              setViewMode("edit");
+                            }}
+                          >
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit Details
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={async() => {
+                              await removeStudent(student.studentId);
+                            }}
+                          >
+                            {isRemovingStudent ? "Deleting..." : "Delete Student"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
+            <div className="flex justify-center items-center mt-4">
+              <Pagination
+                totalItems={students?.total || 0}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                onPageChange={(page: number) => setCurrentPage(page)}
+                onPageSizeChange={(size: number) => setPageSize(size)}
+              />
+            </div>
         </CardContent>
       </Card>
 
@@ -595,17 +753,20 @@ export function StudentsManagement() {
         <ViewStudentDialog
           student={selectedStudent}
           onClose={() => {
-            setSelectedStudent(null)
-            setViewMode(null)
+            setSelectedStudent(null);
+            setViewMode(null);
           }}
         />
       )}
 
       {selectedStudent && viewMode === "edit" && (
-        <Dialog open={true} onOpenChange={() => {
-          setSelectedStudent(null)
-          setViewMode(null)
-        }}>
+        <Dialog
+          open={true}
+          onOpenChange={() => {
+            setSelectedStudent(null);
+            setViewMode(null);
+          }}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit Student</DialogTitle>
@@ -617,8 +778,8 @@ export function StudentsManagement() {
               student={selectedStudent}
               onSubmit={handleEditStudent}
               onCancel={() => {
-                setSelectedStudent(null)
-                setViewMode(null)
+                setSelectedStudent(null);
+                setViewMode(null);
               }}
               mode="edit"
             />
@@ -626,5 +787,5 @@ export function StudentsManagement() {
         </Dialog>
       )}
     </div>
-  )
-} 
+  );
+}
