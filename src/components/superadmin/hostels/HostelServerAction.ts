@@ -42,7 +42,9 @@ export const createHostel = async (data: string) => {
                 hostelExpiryRemainingTime: hostelExpiryRemainingTime,
                 hostelExpiryDate: parsedData.hostelExpiryDate,
                 hostelNumber: hostelNumber,
-                academicYear: isSuperAdmin.academicYear as number
+                academicYear: isSuperAdmin.academicYear as number,
+                authId : isSuperAdmin.authId as string,
+                userInId : isSuperAdmin.authId as string,
             }
         });
         return {

@@ -635,8 +635,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 6.6.0
-   * Query Engine version: f676762280b54cd07c770017ed3711ddde35f37a
+   * Prisma Client JS version: 6.7.0
+   * Query Engine version: 3cff47a7f5d65c3ea74883f1d736e41d68ce91ed
    */
   export type PrismaVersion = {
     client: string
@@ -5025,8 +5025,8 @@ export namespace Prisma {
     createdAt: Date
     updatedAt: Date
     academicYear: number
-    userInId: string
-    authId: string
+    userInId: string | null
+    authId: string | null
     _count: HostelCountAggregateOutputType | null
     _avg: HostelAvgAggregateOutputType | null
     _sum: HostelSumAggregateOutputType | null
@@ -5152,8 +5152,8 @@ export namespace Prisma {
       createdAt: Date
       updatedAt: Date
       academicYear: number
-      userInId: string
-      authId: string
+      userInId: string | null
+      authId: string | null
     }, ExtArgs["result"]["hostel"]>
     composites: {}
   }
@@ -21007,8 +21007,8 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Hostel"> | Date | string
     updatedAt?: DateTimeFilter<"Hostel"> | Date | string
     academicYear?: IntFilter<"Hostel"> | number
-    userInId?: StringFilter<"Hostel"> | string
-    authId?: StringFilter<"Hostel"> | string
+    userInId?: StringNullableFilter<"Hostel"> | string | null
+    authId?: StringNullableFilter<"Hostel"> | string | null
     admins?: AdminListRelationFilter
     reportsComplaints?: ReportsComplaintsListRelationFilter
   }
@@ -21027,8 +21027,8 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     academicYear?: SortOrder
-    userInId?: SortOrder
-    authId?: SortOrder
+    userInId?: SortOrderInput | SortOrder
+    authId?: SortOrderInput | SortOrder
     admins?: AdminOrderByRelationAggregateInput
     reportsComplaints?: ReportsComplaintsOrderByRelationAggregateInput
   }
@@ -21050,8 +21050,8 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Hostel"> | Date | string
     updatedAt?: DateTimeFilter<"Hostel"> | Date | string
     academicYear?: IntFilter<"Hostel"> | number
-    userInId?: StringFilter<"Hostel"> | string
-    authId?: StringFilter<"Hostel"> | string
+    userInId?: StringNullableFilter<"Hostel"> | string | null
+    authId?: StringNullableFilter<"Hostel"> | string | null
     admins?: AdminListRelationFilter
     reportsComplaints?: ReportsComplaintsListRelationFilter
   }, "id" | "hostelId">
@@ -21070,8 +21070,8 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     academicYear?: SortOrder
-    userInId?: SortOrder
-    authId?: SortOrder
+    userInId?: SortOrderInput | SortOrder
+    authId?: SortOrderInput | SortOrder
     _count?: HostelCountOrderByAggregateInput
     _avg?: HostelAvgOrderByAggregateInput
     _max?: HostelMaxOrderByAggregateInput
@@ -21096,8 +21096,8 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"Hostel"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Hostel"> | Date | string
     academicYear?: IntWithAggregatesFilter<"Hostel"> | number
-    userInId?: StringWithAggregatesFilter<"Hostel"> | string
-    authId?: StringWithAggregatesFilter<"Hostel"> | string
+    userInId?: StringNullableWithAggregatesFilter<"Hostel"> | string | null
+    authId?: StringNullableWithAggregatesFilter<"Hostel"> | string | null
   }
 
   export type AdminWhereInput = {
@@ -22529,8 +22529,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     academicYear: number
-    userInId: string
-    authId: string
+    userInId?: string | null
+    authId?: string | null
     admins?: AdminCreateNestedManyWithoutHostelInput
     reportsComplaints?: ReportsComplaintsCreateNestedManyWithoutHostelInput
   }
@@ -22549,8 +22549,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     academicYear: number
-    userInId: string
-    authId: string
+    userInId?: string | null
+    authId?: string | null
     admins?: AdminUncheckedCreateNestedManyWithoutHostelInput
     reportsComplaints?: ReportsComplaintsUncheckedCreateNestedManyWithoutHostelInput
   }
@@ -22568,8 +22568,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     academicYear?: IntFieldUpdateOperationsInput | number
-    userInId?: StringFieldUpdateOperationsInput | string
-    authId?: StringFieldUpdateOperationsInput | string
+    userInId?: NullableStringFieldUpdateOperationsInput | string | null
+    authId?: NullableStringFieldUpdateOperationsInput | string | null
     admins?: AdminUpdateManyWithoutHostelNestedInput
     reportsComplaints?: ReportsComplaintsUpdateManyWithoutHostelNestedInput
   }
@@ -22588,8 +22588,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     academicYear?: IntFieldUpdateOperationsInput | number
-    userInId?: StringFieldUpdateOperationsInput | string
-    authId?: StringFieldUpdateOperationsInput | string
+    userInId?: NullableStringFieldUpdateOperationsInput | string | null
+    authId?: NullableStringFieldUpdateOperationsInput | string | null
     admins?: AdminUncheckedUpdateManyWithoutHostelNestedInput
     reportsComplaints?: ReportsComplaintsUncheckedUpdateManyWithoutHostelNestedInput
   }
@@ -22608,8 +22608,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     academicYear: number
-    userInId: string
-    authId: string
+    userInId?: string | null
+    authId?: string | null
   }
 
   export type HostelUpdateManyMutationInput = {
@@ -22625,8 +22625,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     academicYear?: IntFieldUpdateOperationsInput | number
-    userInId?: StringFieldUpdateOperationsInput | string
-    authId?: StringFieldUpdateOperationsInput | string
+    userInId?: NullableStringFieldUpdateOperationsInput | string | null
+    authId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type HostelUncheckedUpdateManyInput = {
@@ -22643,8 +22643,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     academicYear?: IntFieldUpdateOperationsInput | number
-    userInId?: StringFieldUpdateOperationsInput | string
-    authId?: StringFieldUpdateOperationsInput | string
+    userInId?: NullableStringFieldUpdateOperationsInput | string | null
+    authId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type AdminCreateInput = {
@@ -26481,8 +26481,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     academicYear: number
-    userInId: string
-    authId: string
+    userInId?: string | null
+    authId?: string | null
     reportsComplaints?: ReportsComplaintsCreateNestedManyWithoutHostelInput
   }
 
@@ -26500,8 +26500,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     academicYear: number
-    userInId: string
-    authId: string
+    userInId?: string | null
+    authId?: string | null
     reportsComplaints?: ReportsComplaintsUncheckedCreateNestedManyWithoutHostelInput
   }
 
@@ -26534,8 +26534,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     academicYear?: IntFieldUpdateOperationsInput | number
-    userInId?: StringFieldUpdateOperationsInput | string
-    authId?: StringFieldUpdateOperationsInput | string
+    userInId?: NullableStringFieldUpdateOperationsInput | string | null
+    authId?: NullableStringFieldUpdateOperationsInput | string | null
     reportsComplaints?: ReportsComplaintsUpdateManyWithoutHostelNestedInput
   }
 
@@ -26553,8 +26553,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     academicYear?: IntFieldUpdateOperationsInput | number
-    userInId?: StringFieldUpdateOperationsInput | string
-    authId?: StringFieldUpdateOperationsInput | string
+    userInId?: NullableStringFieldUpdateOperationsInput | string | null
+    authId?: NullableStringFieldUpdateOperationsInput | string | null
     reportsComplaints?: ReportsComplaintsUncheckedUpdateManyWithoutHostelNestedInput
   }
 
@@ -26571,8 +26571,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     academicYear: number
-    userInId: string
-    authId: string
+    userInId?: string | null
+    authId?: string | null
     admins?: AdminCreateNestedManyWithoutHostelInput
   }
 
@@ -26590,8 +26590,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     academicYear: number
-    userInId: string
-    authId: string
+    userInId?: string | null
+    authId?: string | null
     admins?: AdminUncheckedCreateNestedManyWithoutHostelInput
   }
 
@@ -26653,8 +26653,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     academicYear?: IntFieldUpdateOperationsInput | number
-    userInId?: StringFieldUpdateOperationsInput | string
-    authId?: StringFieldUpdateOperationsInput | string
+    userInId?: NullableStringFieldUpdateOperationsInput | string | null
+    authId?: NullableStringFieldUpdateOperationsInput | string | null
     admins?: AdminUpdateManyWithoutHostelNestedInput
   }
 
@@ -26672,8 +26672,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     academicYear?: IntFieldUpdateOperationsInput | number
-    userInId?: StringFieldUpdateOperationsInput | string
-    authId?: StringFieldUpdateOperationsInput | string
+    userInId?: NullableStringFieldUpdateOperationsInput | string | null
+    authId?: NullableStringFieldUpdateOperationsInput | string | null
     admins?: AdminUncheckedUpdateManyWithoutHostelNestedInput
   }
 

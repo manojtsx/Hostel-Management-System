@@ -8,7 +8,7 @@ export async function registerSuperAdmin(data : string) {
         const parsedData = JSON.parse(data);
         console.log(parsedData);
 
-        const existingUser = await prisma.auth.findUnique({
+        const existingUser = await prisma.auth.findFirst({
             where : {
                 userInEmail : parsedData.email,
                 role : "SuperAdmin"
@@ -62,7 +62,7 @@ export async function registerHostelAdmin(data : string) {
     try {
         const parsedData = JSON.parse(data);
 
-        const existingUser = await prisma.auth.findUnique({
+        const existingUser = await prisma.auth.findFirst({
             where : {
                 userInEmail : parsedData.email,
                 role : "Admin"

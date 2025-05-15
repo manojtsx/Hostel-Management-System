@@ -14,7 +14,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 enum Role {
   SuperAdmin
   Admin
@@ -23,79 +22,78 @@ enum Role {
 }
 
 model System {
-  id Int @id @default(autoincrement())
-  systemId String @unique @default(uuid())
-  systemName String
-  systemEmail String
-  sytemMaintenanceMode Boolean @default(false)
-  SMTPHost String?
-  SMTPPort Int?
-  SMTPUser String?
-  SMTPPassword String?
-  passwordPolicy Boolean @default(false)
-  twoFactorAuth Boolean @default(false) 
-  sessionDuration Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  academicYear Int
+  id                   Int      @id @default(autoincrement())
+  systemId             String   @unique @default(uuid())
+  systemName           String
+  systemEmail          String
+  sytemMaintenanceMode Boolean  @default(false)
+  SMTPHost             String?
+  SMTPPort             Int?
+  SMTPUser             String?
+  SMTPPassword         String?
+  passwordPolicy       Boolean  @default(false)
+  twoFactorAuth        Boolean  @default(false)
+  sessionDuration      Int
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  academicYear         Int
 
   @@map("system")
 }
 
 model Auth {
-  id Int @id @default(autoincrement())
-  authId String @unique @default(uuid())
-  userInEmail String
-  userInPhone String
-  userInName String
-  userInPassword String
-  isVerified Boolean @default(false)
-  isRequestApproved Boolean @default(false)
-  role  Role @default(User)
-  hostelId String?
-  academicYear Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  authId            String   @unique @default(uuid())
+  userInEmail       String
+  userInPhone       String
+  userInName        String
+  userInPassword    String
+  isVerified        Boolean  @default(false)
+  isRequestApproved Boolean  @default(false)
+  role              Role     @default(User)
+  hostelId          String?
+  academicYear      Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@unique([userInEmail, hostelId])
-  @@unique([userInPhone, hostelId]) 
-
+  @@unique([userInPhone, hostelId])
   @@map("auth")
 }
 
 model Hostel {
-  id Int @id @default(autoincrement())
-  hostelId String @unique @default(uuid())
-  hostelNumber String
-  hostelName String
-  hostelAddress String
-  totalRooms Int
-  totalBeds Int
-  totalFloors Int
+  id                        Int                 @id @default(autoincrement())
+  hostelId                  String              @unique @default(uuid())
+  hostelNumber              String
+  hostelName                String
+  hostelAddress             String
+  totalRooms                Int
+  totalBeds                 Int
+  totalFloors               Int
   hostelExpiryRemainingTime Int
-  hostelExpiryDate DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  admins Admin[]
-  reportsComplaints ReportsComplaints[]
-  academicYear Int
-  userInId String // Id of the user from auth table
-  authId String // Id of the user who has created the hostel
+  hostelExpiryDate          DateTime
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
+  admins                    Admin[]
+  reportsComplaints         ReportsComplaints[]
+  academicYear              Int
+  userInId                  String? // Id of the user from auth table
+  authId                    String? // Id of the user who has created the hostel
 
-  @@map("hostels") 
+  @@map("hostels")
 }
 
 model Admin {
-  id Int @id @default(autoincrement())
-  adminId String @unique @default(uuid())
-  adminName String
-  adminEmail String @unique
-  adminPhone String @unique
-  authId String  // id from auth table to link the admin to the auth
-  hostelId String
-  hostel Hostel @relation(fields: [hostelId], references: [hostelId], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  adminId      String   @unique @default(uuid())
+  adminName    String
+  adminEmail   String   @unique
+  adminPhone   String   @unique
+  authId       String // id from auth table to link the admin to the auth
+  hostelId     String
+  hostel       Hostel   @relation(fields: [hostelId], references: [hostelId], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   academicYear Int
 
   @@map("admin")
@@ -108,22 +106,23 @@ enum Status {
 }
 
 model HostelRequest {
-  id Int @id @default(autoincrement())  
-  hostelRequestId String @unique @default(uuid())
-  hostelName String
-  hostelAddress String
-  totalRooms Int
-  totalBeds Int
-  totalFloors Int
-  adminName String
-  adminEmail String
-  adminPhone String
-  adminPassword String
-  adminAddress String
-  status Status @default(Pending)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  academicYear Int
+  id              Int      @id @default(autoincrement())
+  hostelRequestId String   @unique @default(uuid())
+  hostelName      String
+  hostelAddress   String
+  totalRooms      Int
+  totalBeds       Int
+  totalFloors     Int
+  adminName       String
+  adminEmail      String
+  adminPhone      String
+  adminPassword   String
+  adminAddress    String
+  status          Status   @default(Pending)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  academicYear    Int
+
   @@map("hostel_requests")
 }
 
@@ -139,38 +138,38 @@ enum Priority {
   High
 }
 
-
 model ReportsComplaints {
-  id Int @id @default(autoincrement())
-  reportId String @unique @default(uuid())
-  reportTitle String
+  id                Int           @id @default(autoincrement())
+  reportId          String        @unique @default(uuid())
+  reportTitle       String
   reportDescription String
-  reportType ReportType @default(Complaint)
-  reportStatus Status @default(Pending)
-  reportPriority Priority @default(Low)
-  reporterUserType Role @default(Student)
-  userId String? // Id of the user who has done complaint
-  hostelId String
-  hostel Hostel @relation(fields: [hostelId], references: [hostelId], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  academicYear Int
-  reportReplies ReportReply[]
+  reportType        ReportType    @default(Complaint)
+  reportStatus      Status        @default(Pending)
+  reportPriority    Priority      @default(Low)
+  reporterUserType  Role          @default(Student)
+  userId            String? // Id of the user who has done complaint
+  hostelId          String
+  hostel            Hostel        @relation(fields: [hostelId], references: [hostelId], onDelete: Cascade)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  academicYear      Int
+  reportReplies     ReportReply[]
 
   @@map("reports_complaints")
 }
 
 // handle replies to the reports complaCints
 model ReportReply {
-  id Int @id @default(autoincrement())
-  replyId String @unique @default(uuid())
-  replyContent String
-  replyStatus Status @default(Pending)
+  id                Int               @id @default(autoincrement())
+  replyId           String            @unique @default(uuid())
+  replyContent      String
+  replyStatus       Status            @default(Pending)
   reportComplaintId String
-  reportComplaint ReportsComplaints @relation(fields: [reportComplaintId], references: [reportId], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  academicYear Int
+  reportComplaint   ReportsComplaints @relation(fields: [reportComplaintId], references: [reportId], onDelete: Cascade)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  academicYear      Int
+
   @@map("report_replies")
 }
 
@@ -185,16 +184,16 @@ enum NotificationType {
 }
 
 model Notification {
-  id Int @id @default(autoincrement())
-  notificationId String @unique @default(uuid())
-  notificationTitle String  
-  notificationMessage String
+  id                      Int              @id @default(autoincrement())
+  notificationId          String           @unique @default(uuid())
+  notificationTitle       String
+  notificationMessage     String
   notificationReadUserIds String[]
-  notificationType NotificationType @default(Other)
-  notificationStatus Status @default(Pending)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  academicYear Int
+  notificationType        NotificationType @default(Other)
+  notificationStatus      Status           @default(Pending)
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  academicYear            Int
 
   @@map("notifications")
 }
@@ -208,19 +207,19 @@ enum PaymentMethod {
 }
 
 model Payment {
-  id Int @id @default(autoincrement())
-  paymentId String @unique @default(uuid())
-  paymentAmount Float
+  id                              Int           @id @default(autoincrement())
+  paymentId                       String        @unique @default(uuid())
+  paymentAmount                   Float
   paymentHostelPreviousExpiryTime Int
-  paymentAddedTime Int
-  paymentDescription String
-  paymentStatus Status @default(Pending)
-  paymentMethod PaymentMethod @default(Other)
-  createdAt DateTime @default(now()) 
-  hostelId String
-  creditRemainingAmount Float
-  updatedAt DateTime @updatedAt
-  academicYear Int
+  paymentAddedTime                Int
+  paymentDescription              String
+  paymentStatus                   Status        @default(Pending)
+  paymentMethod                   PaymentMethod @default(Other)
+  createdAt                       DateTime      @default(now())
+  hostelId                        String
+  creditRemainingAmount           Float
+  updatedAt                       DateTime      @updatedAt
+  academicYear                    Int
 
   @@map("payments")
 }
@@ -233,34 +232,33 @@ enum Gender {
 
 // Models of Hostel
 model HostelStudent {
-  id Int @id @default(autoincrement())
-  studentId String @unique @default(uuid())
-  studentGeneratedId String @unique
-  studentName String
-  studentEmail String
-  studentPhone String
-  studentGender Gender @default(Male)
-  studentAddress String?
-  studentRoomNumber String? // contains the room id of the student
-  studentBedNumber String?
-  status Status @default(Pending)
-  studentCheckInDate DateTime
-  studentCheckOutDate DateTime?
-  studentGuardianName String
-  studentGuardianPhone String
-  studentGuardianAddress String
-  studentGuardianEmail String?
+  id                      Int       @id @default(autoincrement())
+  studentId               String    @unique @default(uuid())
+  studentGeneratedId      String    @unique
+  studentName             String
+  studentEmail            String
+  studentPhone            String
+  studentGender           Gender    @default(Male)
+  studentAddress          String?
+  studentRoomNumber       String? // contains the room id of the student
+  studentBedNumber        String?
+  status                  Status    @default(Pending)
+  studentCheckInDate      DateTime
+  studentCheckOutDate     DateTime?
+  studentGuardianName     String
+  studentGuardianPhone    String
+  studentGuardianAddress  String
+  studentGuardianEmail    String?
   studentGuardianRelation String
-  studentDocuments String[] // Array of document URLs
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  hostelId String 
-  academicYear Int
-  authId String
+  studentDocuments        String[] // Array of document URLs
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  hostelId                String
+  academicYear            Int
+  authId                  String
 
   @@unique([studentEmail, hostelId])
   @@unique([studentPhone, hostelId])
-
   @@map("students")
 }
 
@@ -273,22 +271,21 @@ enum RoomType {
 }
 
 model HostelRoom {
-  id Int @id @default(autoincrement())
-  roomId String @unique @default(uuid())
-  roomNumber String
-  roomCapacity String
-  roomFloor String
-  roomType RoomType @default(Single)
+  id                Int              @id @default(autoincrement())
+  roomId            String           @unique @default(uuid())
+  roomNumber        String
+  roomCapacity      String
+  roomFloor         String
+  roomType          RoomType         @default(Single)
   roomPricePerMonth String
-  roomBuilding String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  hostelId String 
-  academicYear Int
-  temporaryGuests TemporaryGuest[]
+  roomBuilding      String
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  hostelId          String
+  academicYear      Int
+  temporaryGuests   TemporaryGuest[]
 
   @@unique([roomNumber, hostelId])
-
   @@map("rooms")
 }
 
@@ -310,19 +307,19 @@ enum AnnouncementStatus {
 }
 
 model HostelAnnouncement {
-  id Int @id @default(autoincrement())
-  announcementId String @unique @default(uuid())
-  title String
-  content String
-  type AnnouncementType @default(Information)
-  priority AnnouncementPriority @default(Low)
-  date DateTime
-  status AnnouncementStatus @default(ComingSoon)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  hostelId String
-  authId String
-  academicYear Int
+  id             Int                  @id @default(autoincrement())
+  announcementId String               @unique @default(uuid())
+  title          String
+  content        String
+  type           AnnouncementType     @default(Information)
+  priority       AnnouncementPriority @default(Low)
+  date           DateTime
+  status         AnnouncementStatus   @default(ComingSoon)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  hostelId       String
+  authId         String
+  academicYear   Int
 
   @@map("announcements")
 }
@@ -331,24 +328,24 @@ enum EventType {
   Party
   Sports
   Cultural
-  Social  
+  Social
   Festival
   Other
 }
 
 model HostelEvents {
-  id Int @id @default(autoincrement())
-  eventId String @unique @default(uuid())
-  title String
-  description String?
-  location String?
-  time String?
-  type EventType @default(Other)
-  date DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  hostelId String
-  authId String
+  id           Int       @id @default(autoincrement())
+  eventId      String    @unique @default(uuid())
+  title        String
+  description  String?
+  location     String?
+  time         String?
+  type         EventType @default(Other)
+  date         DateTime
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  hostelId     String
+  authId       String
   academicYear Int
 
   @@map("events")
@@ -371,19 +368,19 @@ enum DayOfWeek {
 }
 
 model MealPlan {
-  id Int @id @default(autoincrement())
-  mealPlanId String @unique @default(uuid())
-  title String
-  description String?
-  mealType MealType
-  dayOfWeek DayOfWeek
-  menuItems String[]
-  price Float
-  isActive Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  hostelId String
-  authId String
+  id           Int       @id @default(autoincrement())
+  mealPlanId   String    @unique @default(uuid())
+  title        String
+  description  String?
+  mealType     MealType
+  dayOfWeek    DayOfWeek
+  menuItems    String[]
+  price        Float
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  hostelId     String
+  authId       String
   academicYear Int
 
   @@map("meal_plans")
@@ -397,24 +394,24 @@ enum GuestStatus {
 }
 
 model TemporaryGuest {
-  id Int @id @default(autoincrement())
-  guestId String @unique @default(uuid())
-  guestName String
-  guestEmail String?
-  guestPhone String
-  guestAddress String
-  guestPurpose String
+  id             Int         @id @default(autoincrement())
+  guestId        String      @unique @default(uuid())
+  guestName      String
+  guestEmail     String?
+  guestPhone     String
+  guestAddress   String
+  guestPurpose   String
   guestDocuments String[] // Array of document URLs
-  checkInDate DateTime
-  checkOutDate DateTime
-  status GuestStatus @default(Pending)
-  roomId String?
-  room HostelRoom? @relation(fields: [roomId], references: [roomId])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  hostelId String
-  authId String
-  academicYear Int
+  checkInDate    DateTime
+  checkOutDate   DateTime
+  status         GuestStatus @default(Pending)
+  roomId         String?
+  room           HostelRoom? @relation(fields: [roomId], references: [roomId])
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  hostelId       String
+  authId         String
+  academicYear   Int
 
   @@map("temporary_guests")
-} 
+}

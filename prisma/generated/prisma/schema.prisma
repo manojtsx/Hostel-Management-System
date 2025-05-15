@@ -77,8 +77,8 @@ model Hostel {
   admins                    Admin[]
   reportsComplaints         ReportsComplaints[]
   academicYear              Int
-  userInId                  String // Id of the user from auth table
-  authId                    String // Id of the user who has created the hostel
+  userInId                  String? // Id of the user from auth table
+  authId                    String? // Id of the user who has created the hostel
 
   @@map("hostels")
 }
