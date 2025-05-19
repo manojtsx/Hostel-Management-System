@@ -14,21 +14,18 @@ import {
   FileText,
   User,
 } from "lucide-react"
-import { useState } from "react"
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+import { useQuery } from "@tanstack/react-query"
+import { getTotalRooms, getTotalStudents } from "./DashboardServer"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface DashboardStats {
   totalRooms: number
@@ -59,6 +56,9 @@ interface RoomStatus {
 }
 
 export function AdminDashboard() {
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
+
   const [stats, setStats] = useState<DashboardStats>({
     totalRooms: 50,
     totalStudents: 200,
@@ -68,6 +68,30 @@ export function AdminDashboard() {
     pendingPayments: 5,
     activeTemporaryGuests: 8,
   })
+
+  const {data : totalRooms, isLoading : isTotalRoomsLoading} = useQuery({
+    queryKey: ["total-rooms", selectedMonth, selectedYear],
+    queryFn: () => getTotalRooms(selectedMonth, selectedYear)
+  })
+
+  const {data : totalStudents, isLoading : isTotalStudentsLoading} = useQuery({
+    queryKey: ["total-students", selectedMonth, selectedYear],
+    queryFn: () => getTotalStudents(selectedMonth, selectedYear)
+  })
+
+  useEffect(() => {
+    if (totalRooms && totalStudents) {
+      setStats({
+        totalRooms: totalRooms.totalRooms || 0,
+        totalStudents: totalStudents.totalStudents || 0,
+        totalTemporaryGuests: 0,
+        monthlyRevenue: 0,
+        occupancyRate: 0,
+        pendingPayments: 0,
+        activeTemporaryGuests: 0,
+      })
+    }
+  }, [totalRooms, totalStudents])
 
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([
     {
@@ -147,52 +171,6 @@ export function AdminDashboard() {
     },
   ])
 
-  const monthlyRevenueData = [
-    { month: "Jan", revenue: 20000 },
-    { month: "Feb", revenue: 22000 },
-    { month: "Mar", revenue: 25000 },
-    { month: "Apr", revenue: 23000 },
-    { month: "May", revenue: 27000 },
-    { month: "Jun", revenue: 30000 },
-  ]
-
-  const occupancyData = [
-    { day: "Mon", occupancy: 75 },
-    { day: "Tue", occupancy: 80 },
-    { day: "Wed", occupancy: 85 },
-    { day: "Thu", occupancy: 90 },
-    { day: "Fri", occupancy: 85 },
-    { day: "Sat", occupancy: 70 },
-    { day: "Sun", occupancy: 65 },
-  ]
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-500"
-      case "pending":
-        return "bg-yellow-500"
-      case "failed":
-        return "bg-red-500"
-      default:
-        return "bg-gray-500"
-    }
-  }
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case "student":
-        return <Users className="h-4 w-4" />
-      case "guest":
-        return <User className="h-4 w-4" />
-      case "payment":
-        return <DollarSign className="h-4 w-4" />
-      case "maintenance":
-        return <AlertCircle className="h-4 w-4" />
-      default:
-        return null
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -204,10 +182,43 @@ export function AdminDashboard() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline">
-            <Calendar className="mr-2 h-4 w-4" />
-            This Month
-          </Button>
+          <Select
+            value={selectedMonth.toString()}
+            onValueChange={(value) => setSelectedMonth(parseInt(value))}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select month" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">January</SelectItem>
+              <SelectItem value="2">February</SelectItem>
+              <SelectItem value="3">March</SelectItem>
+              <SelectItem value="4">April</SelectItem>
+              <SelectItem value="5">May</SelectItem>
+              <SelectItem value="6">June</SelectItem>
+              <SelectItem value="7">July</SelectItem>
+              <SelectItem value="8">August</SelectItem>
+              <SelectItem value="9">September</SelectItem>
+              <SelectItem value="10">October</SelectItem>
+              <SelectItem value="11">November</SelectItem>
+              <SelectItem value="12">December</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={selectedYear.toString()}
+            onValueChange={(value) => setSelectedYear(parseInt(value))}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button>
             <FileText className="mr-2 h-4 w-4" />
             Generate Report

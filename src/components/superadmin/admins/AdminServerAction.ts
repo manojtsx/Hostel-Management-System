@@ -111,6 +111,7 @@ export const createAdmin = async (data: string) => {
                     userInName: parsedData.adminName,
                     userInPhone: parsedData.adminPhone,
                     role: "Admin",
+                    hostelId: parsedData.hostel.hostelId,
                     academicYear: isSuperAdmin.academicYear as number
                 }
             })

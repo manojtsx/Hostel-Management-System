@@ -59,10 +59,11 @@ import useStudentMutations from "./StudentMutations";
 import { useQuery } from "@tanstack/react-query";
 import { getAllRooms, getStudents } from "./StudentServer";
 import { useDebounce } from "@/utils/debounce/usedebounce";
-import { Status } from "@prisma/client";
+import { Status } from "@/prisma/generated/prisma";
 import {
   Pagination
 } from "@/components/pagination";
+import { toast } from "sonner";
 interface Student {
   studentId: string;
   studentGeneratedId: string;
@@ -71,6 +72,11 @@ interface Student {
   studentPhone: string;
   studentAddress: string;
   studentRoom: string;
+  room: {
+    roomNumber: string;
+    roomType: string;
+    roomCapacity: number;
+  };
   studentStatus: "Pending" | "Approved" | "Rejected" | "All";
   studentCheckInDate: string;
   studentGender: string;
@@ -396,7 +402,7 @@ function ViewStudentDialog({
             </div>
             <div>
               <Label>Room</Label>
-              <p className="text-sm">{student.studentRoom}</p>
+              <p className="text-sm">{student.room?.roomNumber}</p>
             </div>
             <div>
               <Label>Gender</Label>
@@ -487,6 +493,7 @@ export function StudentsManagement() {
       studentPhone: newStudent.studentPhone!,
       studentAddress: newStudent.studentAddress!,
       studentRoom: newStudent.studentRoom!,
+      room: newStudent.room!, // Added missing required room property
       studentStatus: newStudent.studentStatus as Student["studentStatus"],
       studentCheckInDate:
         newStudent.studentCheckInDate || new Date().toISOString().split("T")[0],
@@ -498,7 +505,6 @@ export function StudentsManagement() {
     };
 
     await createStudent(JSON.stringify(student));
-    setIsAddStudentDialogOpen(false);
   };
 
   const handleEditStudent = (updatedStudent: Partial<Student>) => {

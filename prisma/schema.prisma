@@ -251,6 +251,8 @@ model HostelStudent {
   studentGuardianEmail    String?
   studentGuardianRelation String
   studentDocuments        String[] // Array of document URLs
+  roomId                  String?
+  room                    HostelRoom? @relation(fields: [roomId], references: [roomId])
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
   hostelId                String
@@ -284,6 +286,7 @@ model HostelRoom {
   hostelId          String
   academicYear      Int
   temporaryGuests   TemporaryGuest[]
+  students          HostelStudent[]
 
   @@unique([roomNumber, hostelId])
   @@map("rooms")

@@ -1,7 +1,7 @@
 "use server"
 import prisma from "@/lib/prisma"
 import { isValidAdmin } from "@/lib/validation/role-validation"
-import { HostelRoom, Prisma, Status } from "@prisma/client";
+import { Prisma, Status } from "@/prisma/generated/prisma";
 import bcrypt from "bcryptjs";
 
 // generate id for student
@@ -10,7 +10,7 @@ function generateIDForStudent(studentName: string) {
     const firstName = studentName.split(" ")[0];
     const lastName = studentName.split(" ")[1];
     const randomDate = new Date().getTime();
-    const id = `${firstName.charAt(0)}${lastName.charAt(0)}${randomDate}`;
+    const id = `${firstName.charAt(0)}${lastName && lastName.charAt(0)}${randomDate}`;
     return id;
 }
 
@@ -30,8 +30,59 @@ export const addStudent = async (data: string) => {
 
         const hashedPassword = await bcrypt.hash(parsedData.studentPhone, 10);
 
+        // check if exising email or phone
+        const existing = await prisma.hostelStudent.findFirst({
+            where: {
+                OR: [
+                    {
+                        studentEmail: parsedData.studentEmail
+                    },
+                    {
+                        studentPhone: parsedData.studentPhone
+                    }
+                ],
+                hostelId: isAdmin.hostelId as string
+            }
+        })
+        if(existing) {
+            return {
+                success: false,
+                message: "Email or Phone already exists"
+            }
+        }
+        
+         // First check if the room has capacity
+         const room = await prisma.hostelRoom.findUnique({
+            where: {
+                roomId: parsedData.studentRoom
+            },
+            include: {
+                students: true,
+                temporaryGuests: true
+            }
+        });
+
+        if (!room) {
+            return {
+                success: false,
+                message: "Room not found"
+            }
+        }
+
+        // Check room capacity before creating student
+        const currentOccupants = (room.students.length || 0) + (room.temporaryGuests.length || 0);
+        if (Number(room.roomCapacity) <= currentOccupants) {
+            return {
+                success: false,
+                message: "Room is at full capacity"
+            }
+        }
+        
+
         // create a student
         await prisma.$transaction(async (tx) => {
+           
+
             const auth = await tx.auth.create({
                 data: {
                     userInEmail: parsedData.studentEmail,
@@ -43,7 +94,8 @@ export const addStudent = async (data: string) => {
                     academicYear: isAdmin.academicYear as number,
                 }
             })
-            await tx.hostelStudent.create({
+
+            const student = await tx.hostelStudent.create({
                 data: {
                     studentGeneratedId: generateIDForStudent(parsedData.studentName),
                     studentEmail: parsedData.studentEmail,
@@ -51,6 +103,7 @@ export const addStudent = async (data: string) => {
                     studentName: parsedData.studentName,
                     studentGender: parsedData.studentGender,
                     studentCheckInDate: new Date(parsedData.studentCheckInDate),
+                    status: parsedData.studentStatus as Status,
                     studentAddress: parsedData.studentAddress,
                     studentRoomNumber: parsedData.studentRoom,
                     hostelId: isAdmin.hostelId as string,
@@ -61,7 +114,21 @@ export const addStudent = async (data: string) => {
                     studentGuardianRelation: parsedData.studentGuardianRelation,
                     authId: auth.authId
                 }
-            })
+            });
+
+            // Now connect the student to the room
+            await tx.hostelRoom.update({
+                where: {
+                    roomId: parsedData.studentRoom
+                },
+                data: {
+                    students: {
+                        connect: {
+                            studentId: student.studentId
+                        }
+                    }
+                }
+            });
         })
         return {
             success: true,

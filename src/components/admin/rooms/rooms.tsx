@@ -7,6 +7,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card"
 import {
   Dialog,
@@ -45,22 +46,21 @@ import { useState } from "react"
 import { MoreHorizontal, Plus, BedDouble, Users, User, Eye, Pencil } from "lucide-react"
 import { toast } from "sonner"
 import useRoomMutations from "./RoomMutations"
+import { useQuery } from "@tanstack/react-query"
+import { getRooms } from "./RoomServer"
 
 interface Room {
   roomId: string
   roomNumber: string
   roomType: "Single" | "Double" | "Triple"
-  roomCapacity: number
+  roomCapacity: string
   occupied: number
-  status: "available" | "occupied" | "maintenance"
+  status: "available" | "partially_occupied" | "occupied"
   occupants: {
-    id: string
     name: string
     type: "student" | "guest"
-    checkInDate: string
-    checkOutDate?: string
   }[]
-  roomPricePerMonth: number
+  roomPricePerMonth: string
   roomFloor: string
   roomBuilding: string
 }
@@ -124,8 +124,8 @@ function ViewRoomDialog({ room, onClose }: { room: Room; onClose: () => void }) 
           <div>
             <Label>Occupants</Label>
             <div className="space-y-2 mt-2">
-              {room.occupants.map((occupant) => (
-                <div key={occupant.id} className="flex items-center gap-2">
+              {room.occupants.map((occupant, index) => (
+                <div key={index} className="flex items-center gap-2">
                   {occupant.type === "student" ? (
                     <Users className="h-4 w-4 text-blue-500" />
                   ) : (
@@ -134,8 +134,7 @@ function ViewRoomDialog({ room, onClose }: { room: Room; onClose: () => void }) 
                   <div>
                     <p className="text-sm font-medium">{occupant.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {occupant.type} • {occupant.checkInDate}
-                      {occupant.checkOutDate && ` - ${occupant.checkOutDate}`}
+                      {occupant.type}
                     </p>
                   </div>
                 </div>
@@ -154,85 +153,16 @@ function ViewRoomDialog({ room, onClose }: { room: Room; onClose: () => void }) 
 }
 
 export function RoomsManagement() {
-  const [rooms, setRooms] = useState<Room[]>([
-    {
-      roomId: "101",
-      roomNumber: "101",
-      roomType: "Single",
-      roomCapacity: 4,
-      occupied: 3,
-      status: "occupied",
-      occupants: [
-        {
-          id: "S001",
-          name: "John Doe",
-          type: "student",
-          checkInDate: "2024-01-01",
-        },
-        {
-          id: "S002",
-          name: "Jane Smith",
-          type: "student",
-          checkInDate: "2024-01-01",
-        },
-        {
-          id: "TG001",
-          name: "Mike Johnson",
-          type: "guest",
-          checkInDate: "2024-03-15",
-          checkOutDate: "2024-03-17",
-        },
-      ],
-      roomPricePerMonth: 1000,
-      roomFloor: "1",
-      roomBuilding: "A",
-    },
-    {
-      roomId: "102",
-      roomNumber: "102",
-      roomType: "Double",
-      roomCapacity: 8,
-      occupied: 5,
-      status: "occupied",
-      occupants: [
-        {
-          id: "S003",
-          name: "Alice Brown",
-          type: "student",
-          checkInDate: "2024-01-01",
-        },
-        {
-          id: "S004",
-          name: "Bob Wilson",
-          type: "student",
-          checkInDate: "2024-01-01",
-        },
-        {
-          id: "S005",
-          name: "Charlie Davis",
-          type: "student",
-          checkInDate: "2024-01-01",
-        },
-        {
-          id: "TG002",
-          name: "Sarah Miller",
-          type: "guest",
-          checkInDate: "2024-03-16",
-          checkOutDate: "2024-03-18",
-        },
-        {
-          id: "TG003",
-          name: "David Lee",
-          type: "guest",
-          checkInDate: "2024-03-16",
-          checkOutDate: "2024-03-18",
-        },
-      ],
-      roomPricePerMonth: 2000,
-      roomFloor: "1",
-      roomBuilding: "A",
-    },
-  ])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [roomToDelete, setRoomToDelete] = useState<Room | null>(null)
+
+  const {data : rooms, isLoading : isRoomsLoading} = useQuery({
+    queryKey: ["rooms", currentPage, pageSize, searchQuery],
+    queryFn: () => getRooms(currentPage, pageSize, searchQuery)
+  })
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
@@ -275,19 +205,6 @@ export function RoomsManagement() {
       return
     }
 
-    setRooms(rooms.map(room =>
-      room.roomId === selectedRoom.roomId
-        ? {
-            ...room,
-            roomNumber: newRoom.roomNumber!,
-            roomType: newRoom.roomType as Room["roomType"],
-            roomCapacity: newRoom.roomCapacity!,
-            roomPricePerMonth: newRoom.roomPricePerMonth!,
-            roomFloor: newRoom.roomFloor!,
-            roomBuilding: newRoom.roomBuilding!,
-          }
-        : room
-    ))
     setSelectedRoom(null)
     setViewMode(null)
     setNewRoom({ status: "available", occupants: [] })
@@ -295,15 +212,14 @@ export function RoomsManagement() {
   }
 
   const handleUpdateStatus = (id: string, status: Room["status"]) => {
-    setRooms(rooms.map(room => 
-      room.roomId === id ? { ...room, status } : room
-    ))
     toast.success("Status updated successfully")
   }
 
   const handleDeleteRoom = (id: string) => {
-    setRooms(rooms.filter(room => room.roomId !== id))
-    toast.success("Room removed successfully")
+    // Close the delete dialog
+    setIsDeleteDialogOpen(false)
+    setRoomToDelete(null)
+    toast.success("Room deleted successfully")
   }
 
   return (
@@ -320,7 +236,7 @@ export function RoomsManagement() {
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               Add Room
-            </Button>
+            </Button> 
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
@@ -363,7 +279,7 @@ export function RoomsManagement() {
                     id="roomCapacity"
                     type="number"
                     value={newRoom.roomCapacity || ""}
-                    onChange={(e) => setNewRoom({ ...newRoom, roomCapacity: parseInt(e.target.value) })}
+                    onChange={(e) => setNewRoom({ ...newRoom, roomCapacity: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
@@ -372,7 +288,7 @@ export function RoomsManagement() {
                     id="roomPricePerMonth"
                     type="number"
                     value={newRoom.roomPricePerMonth || ""}
-                    onChange={(e) => setNewRoom({ ...newRoom, roomPricePerMonth: parseInt(e.target.value) })}
+                    onChange={(e) => setNewRoom({ ...newRoom, roomPricePerMonth: e.target.value })}
                   />
                 </div>
               </div>
@@ -413,10 +329,36 @@ export function RoomsManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Room List</CardTitle>
-          <CardDescription>
-            View and manage rooms and their occupants
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Room List</CardTitle>
+              <CardDescription>
+                View and manage rooms and their occupants
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Search rooms..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-[200px]"
+              />
+              <Select
+                value={pageSize.toString()}
+                onValueChange={(value) => setPageSize(Number(value))}
+              >
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue placeholder="10" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -433,7 +375,7 @@ export function RoomsManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rooms.map((room) => (
+              {rooms?.rooms?.map((room) => (
                 <TableRow key={room.roomId}>
                   <TableCell className="font-medium">{room.roomNumber}</TableCell>
                   <TableCell>{room.roomType}</TableCell>
@@ -442,8 +384,8 @@ export function RoomsManagement() {
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      {room.occupants.map((occupant) => (
-                        <div key={occupant.id} className="flex items-center gap-2">
+                      {room.occupants.map((occupant, index) => (
+                        <div key={index} className="flex items-center gap-2">
                           {occupant.type === "student" ? (
                             <Users className="h-4 w-4 text-blue-500" />
                           ) : (
@@ -452,8 +394,7 @@ export function RoomsManagement() {
                           <div>
                             <p className="text-sm font-medium">{occupant.name}</p>
                             <p className="text-xs text-muted-foreground">
-                              {occupant.type} • {occupant.checkInDate}
-                              {occupant.checkOutDate && ` - ${occupant.checkOutDate}`}
+                              {occupant.type}
                             </p>
                           </div>
                         </div>
@@ -502,23 +443,14 @@ export function RoomsManagement() {
                           Edit Room
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleUpdateStatus(room.roomId, "available")}
-                        >
-                          <BedDouble className="mr-2 h-4 w-4" />
-                          Set Available
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleUpdateStatus(room.roomId, "maintenance")}
-                        >
-                          <BedDouble className="mr-2 h-4 w-4" />
-                          Set Maintenance
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDeleteRoom(room.roomId)}
+                          onClick={() => {
+                            setRoomToDelete(room)
+                            setIsDeleteDialogOpen(true)
+                          }}
                           className="text-red-600"
                         >
                           <BedDouble className="mr-2 h-4 w-4" />
-                          Remove Room
+                          Delete Room
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -528,6 +460,27 @@ export function RoomsManagement() {
             </TableBody>
           </Table>
         </CardContent>
+        <CardFooter className="flex justify-between items-center">
+          <div className="text-sm text-muted-foreground">
+            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, (rooms?.totalPages || 0) * pageSize)} of {(rooms?.totalPages || 0) * pageSize} rooms
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              disabled={currentPage >= (rooms?.totalPages || 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </CardFooter>
       </Card>
 
       {selectedRoom && viewMode === "view" && (
@@ -539,6 +492,35 @@ export function RoomsManagement() {
           }}
         />
       )}
+
+      {/* Add Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Room</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete room {roomToDelete?.roomNumber}? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false)
+                setRoomToDelete(null)
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => roomToDelete && handleDeleteRoom(roomToDelete.roomId)}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 
