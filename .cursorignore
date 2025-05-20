@@ -1,0 +1,25 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+node_modules
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.development
+.env.test
+.env.production
+
+
+# Ignore all files in the dist directory
+dist/*
+
+# Ignore all files in the build directory
+build/*
+
+# Ignore all files in the .next directory
+.next/*
+
+# Ignore all files in the .git directory
+.git/*
+
+    

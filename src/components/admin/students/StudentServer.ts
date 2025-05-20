@@ -28,6 +28,14 @@ export const addStudent = async (data: string) => {
         const parsedData = JSON.parse(data);
         console.log(parsedData, "parsed Data");
 
+        // make first name and last name compulsory check that in studentName
+        if(parsedData.studentName.split(" ").length < 2) {
+            return {
+                success: false,
+                message: "First name and last name are compulsory"
+            }
+        }
+
         const hashedPassword = await bcrypt.hash(parsedData.studentPhone, 10);
 
         // check if exising email or phone
@@ -324,7 +332,6 @@ export const editStudent = async (data: string) => {
                     studentGender: parsedData.studentGender,
                     studentCheckInDate: new Date(parsedData.studentCheckInDate),
                     studentAddress: parsedData.studentAddress,
-                    studentRoomNumber: parsedData.studentRoomNumber,
                     studentGuardianName: parsedData.studentGuardianName,
                     studentGuardianPhone: parsedData.studentGuardianPhone,
                     studentGuardianAddress: parsedData.studentGuardianAddress,
@@ -384,7 +391,10 @@ export const deleteStudent = async (studentId: string) => {
             });
 
             if (!student) {
-                throw new Error("Student not found");
+                return {
+                    success: false,
+                    message: "Student not found"
+                }
             }
 
             await tx.hostelStudent.delete({
@@ -522,6 +532,116 @@ export const getAllRooms = async (searchQuery : string) => {
         return {
             success: false,
             message: "Error fetching rooms for student"
+        }
+    }
+}
+
+export const changeRoom = async (studentId: string, newRoomId: string) => {
+    const isAdmin = await isValidAdmin();
+    if (!isAdmin) {
+        return {
+            success: false,
+            message: "You are not authorized to change student's room"
+        }
+    }
+
+    try {
+        // First check if the new room has capacity
+        const newRoom = await prisma.hostelRoom.findUnique({
+            where: {
+                roomId: newRoomId
+            },
+            include: {
+                students: true,
+                temporaryGuests: true
+            }
+        });
+
+        if (!newRoom) {
+            return {
+                success: false,
+                message: "New room not found"
+            }
+        }
+
+        // Check room capacity
+        const currentOccupants = (newRoom.students.length || 0) + (newRoom.temporaryGuests.length || 0);
+        if (Number(newRoom.roomCapacity) <= currentOccupants) {
+            return {
+                success: false,
+                message: "New room is at full capacity"
+            }
+        }
+
+        // Get the current room of the student
+        const student = await prisma.hostelStudent.findUnique({
+            where: {
+                studentId: studentId
+            },
+            include: {
+                room: true
+            }
+        });
+
+        if (!student) {
+            return {
+                success: false,
+                message: "Student not found"
+            }
+        }
+
+        // Update the student's room
+        await prisma.$transaction(async (tx) => {
+            // Disconnect from current room
+            if (student.room) {
+                await tx.hostelRoom.update({
+                    where: {
+                        roomId: student.room.roomId
+                    },
+                    data: {
+                        students: {
+                            disconnect: {
+                                studentId: studentId
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Connect to new room
+            await tx.hostelRoom.update({
+                where: {
+                    roomId: newRoomId
+                },
+                data: {
+                    students: {
+                        connect: {
+                            studentId: studentId
+                        }
+                    }
+                }
+            });
+
+            // Update student's room number
+            await tx.hostelStudent.update({
+                where: {
+                    studentId: studentId
+                },
+                data: {
+                    studentRoomNumber: newRoomId
+                }
+            });
+        });
+
+        return {
+            success: true,
+            message: "Room changed successfully"
+        }
+    } catch (err) {
+        console.log(err);
+        return {
+            success: false,
+            message: "Error changing room"
         }
     }
 }

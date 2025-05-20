@@ -1,7 +1,7 @@
 "use server"
 import prisma from "@/lib/prisma"
 import { isValidAdmin } from "@/lib/validation/role-validation"
-import { AnnouncementPriority, AnnouncementStatus, AnnouncementType, Prisma } from "@prisma/client";
+import { AnnouncementPriority, AnnouncementStatus, AnnouncementType, Prisma } from "@/prisma/generated/prisma";
 
 // add announcement
 export const addAnnouncement = async (data: string) => {

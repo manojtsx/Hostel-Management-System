@@ -43,7 +43,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
-import { MoreHorizontal, Plus, BedDouble, Users, User, Eye, Pencil } from "lucide-react"
+import { MoreHorizontal, Plus, BedDouble, Users, User, Eye, Pencil, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import useRoomMutations from "./RoomMutations"
 import { useQuery } from "@tanstack/react-query"
@@ -172,7 +172,7 @@ export function RoomsManagement() {
     occupants: [],
   })
 
-  const {createRoom, isCreatingRoom} = useRoomMutations();
+  const {createRoom, isCreatingRoom, updateRoom, isUpdatingRoom, removeRoom, isRemovingRoom} = useRoomMutations();
   const handleAddRoom = async() => {
     if (!newRoom.roomNumber || !newRoom.roomType || !newRoom.roomCapacity || !newRoom.roomPricePerMonth || !newRoom.roomFloor || !newRoom.roomBuilding) {
       toast.error("Please fill in all required fields")
@@ -199,27 +199,28 @@ export function RoomsManagement() {
     setNewRoom({ status: "available", occupants: [] });
   }
 
-  const handleEditRoom = () => {
+  const handleEditRoom = async() => {
     if (!selectedRoom || !newRoom.roomNumber || !newRoom.roomType || !newRoom.roomCapacity || !newRoom.roomPricePerMonth || !newRoom.roomFloor || !newRoom.roomBuilding) {
       toast.error("Please fill in all required fields")
-      return
-    }
+      return;
+    } 
+
+    await updateRoom(JSON.stringify(newRoom));
 
     setSelectedRoom(null)
     setViewMode(null)
     setNewRoom({ status: "available", occupants: [] })
-    toast.success("Room updated successfully")
   }
 
   const handleUpdateStatus = (id: string, status: Room["status"]) => {
     toast.success("Status updated successfully")
   }
 
-  const handleDeleteRoom = (id: string) => {
+  const handleDeleteRoom = async(id: string) => {
     // Close the delete dialog
     setIsDeleteDialogOpen(false)
     setRoomToDelete(null)
-    toast.success("Room deleted successfully")
+    await removeRoom(id);
   }
 
   return (
@@ -319,8 +320,10 @@ export function RoomsManagement() {
               }}>
                 Cancel
               </Button>
-              <Button onClick={selectedRoom ? handleEditRoom : handleAddRoom}>
+              <Button onClick={selectedRoom ? handleEditRoom : handleAddRoom} disabled={isCreatingRoom || isUpdatingRoom}>
                 {selectedRoom ? "Save Changes" : "Add Room"}
+                {isCreatingRoom && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                {isUpdatingRoom && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -375,7 +378,7 @@ export function RoomsManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rooms?.rooms?.map((room) => (
+              {rooms?.rooms?.map((room : any)  => (
                 <TableRow key={room.roomId}>
                   <TableCell className="font-medium">{room.roomNumber}</TableCell>
                   <TableCell>{room.roomType}</TableCell>
@@ -384,7 +387,7 @@ export function RoomsManagement() {
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      {room.occupants.map((occupant, index) => (
+                      {room.occupants.map((occupant : any, index : number) => (
                         <div key={index} className="flex items-center gap-2">
                           {occupant.type === "student" ? (
                             <Users className="h-4 w-4 text-blue-500" />
@@ -428,6 +431,7 @@ export function RoomsManagement() {
                         <DropdownMenuItem onClick={() => {
                           setSelectedRoom(room)
                           setNewRoom({
+                            roomId: room.roomId,
                             roomNumber: room.roomNumber,
                             roomType: room.roomType,
                             roomCapacity: room.roomCapacity,
@@ -515,8 +519,10 @@ export function RoomsManagement() {
             <Button
               variant="destructive"
               onClick={() => roomToDelete && handleDeleteRoom(roomToDelete.roomId)}
+              disabled={isRemovingRoom}
             >
               Delete
+              {isRemovingRoom && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
             </Button>
           </DialogFooter>
         </DialogContent>

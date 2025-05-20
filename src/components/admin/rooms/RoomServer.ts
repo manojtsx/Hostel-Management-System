@@ -135,4 +135,80 @@ export const getRooms = async(page: number, pageSize: number, searchQuery: strin
     }
 }
 
-    
+export const editRoom = async(data: string)=>{
+    const isAdmin = await isValidAdmin();
+    if(!isAdmin){
+        return{
+            success: false,
+            message: "You are not authorized to edit a room"
+        }
+    }
+    try{
+        const parsedData = JSON.parse(data);
+        console.log(parsedData, "parsed data");
+
+        // check if the room number is already taken
+        console.log(parsedData.roomId, "parsed data");
+        const existingRoom = await prisma.hostelRoom.findFirst({
+            where: {
+                roomNumber: parsedData.roomNumber,
+                hostelId: isAdmin.hostelId as string,
+                roomId: {
+                    not: parsedData.roomId
+                }
+            }
+        })
+        if(existingRoom){
+            return {
+                success: false,
+                message: "Room number already taken"
+            }
+        }
+        await prisma.hostelRoom.update({
+            where: {
+                roomId: parsedData.roomId
+            },
+            data: {
+                roomNumber: parsedData.roomNumber,
+                roomCapacity: parsedData.roomCapacity.toString(),
+                roomFloor: parsedData.roomFloor,
+                roomBuilding: parsedData.roomBuilding,
+                roomType: parsedData.roomType,
+                roomPricePerMonth: parsedData.roomPricePerMonth.toString(),
+            }
+        })
+        return {
+            success: true,
+            message: "Room updated successfully"
+        }
+
+    } catch (err) {
+        console.log(err);
+        throw new Error("Error editing room");
+    }
+}
+
+export const deleteRoom = async(roomId: string)=>{
+    const isAdmin = await isValidAdmin();
+    if(!isAdmin){
+        return{
+            success: false,
+            message: "You are not authorized to delete a room"
+        }
+    }
+    try{
+        await prisma.hostelRoom.delete({
+            where: {
+                roomId: roomId
+            }
+        })
+        return {
+            success: true,
+            message: "Room deleted successfully"
+        }
+    } catch (err) {
+        console.log(err);
+        throw new Error("Error deleting room");
+    }
+}
+

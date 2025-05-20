@@ -27,6 +27,7 @@ import {
   Pencil,
   Check,
   X,
+  ArrowRightLeft,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -64,6 +65,7 @@ import {
   Pagination
 } from "@/components/pagination";
 import { toast } from "sonner";
+
 interface Student {
   studentId: string;
   studentGeneratedId: string;
@@ -73,6 +75,7 @@ interface Student {
   studentAddress: string;
   studentRoom: string;
   room: {
+    roomId: string;
     roomNumber: string;
     roomType: string;
     roomCapacity: number;
@@ -108,13 +111,18 @@ interface StudentFormProps {
 
 function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
   const [formData, setFormData] = useState<Partial<Student>>(
-    student || {
+    student ? {
+      ...student,
+      studentRoom: student.room?.roomId || "",
+      studentCheckInDate: student.studentCheckInDate ? new Date(student.studentCheckInDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+    } : {
       studentGeneratedId: "",
       studentName: "",
       studentEmail: "",
       studentPhone: "",
       studentAddress: "",
       studentRoom: "",
+      room: undefined,
       studentStatus: "All",
       studentCheckInDate: new Date().toISOString().split("T")[0],
       studentGender: "Male",
@@ -192,6 +200,7 @@ function StudentForm({ student, onSubmit, onCancel, mode }: StudentFormProps) {
             onValueChange={(value) =>
               setFormData({ ...formData, studentRoom: value })
             }
+            disabled={isLoadingRooms || mode === "edit"}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a room" />
@@ -401,6 +410,10 @@ function ViewStudentDialog({
               <p className="text-sm">{student.studentPhone}</p>
             </div>
             <div>
+              <Label>Address</Label>
+              <p className="text-sm">{student.studentAddress}</p>
+            </div>
+            <div>
               <Label>Room</Label>
               <p className="text-sm">{student.room?.roomNumber}</p>
             </div>
@@ -452,6 +465,100 @@ function ViewStudentDialog({
   );
 }
 
+interface ChangeRoomDialogProps {
+  studentId: string;
+  onClose: () => void;
+  onSubmit: (studentId: string, newRoomId: string) => Promise<void>;
+}
+
+function ChangeRoomDialog({ studentId, onClose, onSubmit }: ChangeRoomDialogProps) {
+  const [selectedRoom, setSelectedRoom] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
+  const { data: rooms, isLoading: isLoadingRooms } = useQuery({
+    queryKey: ["rooms", debouncedSearchQuery],
+    queryFn: () => getAllRooms(debouncedSearchQuery),
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRoom) return;
+    await onSubmit(studentId, selectedRoom);
+    onClose();
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Change Student's Room</DialogTitle>
+          <DialogDescription>
+            Select a new room for the student
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Select New Room</Label>
+            <Select
+              value={selectedRoom}
+              onValueChange={setSelectedRoom}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a room" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                <div className="sticky top-0 z-10 bg-white p-2 border-b">
+                  <Input
+                    placeholder="Search room by number or type..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                {isLoadingRooms ? (
+                  <div className="flex items-center justify-center p-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+                  </div>
+                ) : rooms?.data?.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-gray-500">
+                    No rooms found
+                  </div>
+                ) : (
+                  rooms?.data?.map((room: any) => (
+                    <SelectItem 
+                      key={room.roomId} 
+                      value={room.roomId}
+                      className="flex items-center justify-between py-2 px-4 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{room.roomNumber}</span>
+                        <span className="text-gray-500">-</span>
+                        <span className="text-gray-600">{room.roomType}</span>
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        Capacity: {room.roomCapacity}
+                      </span>
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={!selectedRoom}>
+              Change Room
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function StudentsManagement() {
   const [isAddStudentDialogOpen, setIsAddStudentDialogOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
@@ -464,6 +571,8 @@ export function StudentsManagement() {
   const [endDate, setEndDate] = useState<Date>();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [isChangeRoomDialogOpen, setIsChangeRoomDialogOpen] = useState(false);
+  const [selectedStudentForRoomChange, setSelectedStudentForRoomChange] = useState<string | null>(null);
 
   const { data: students, isLoading: isLoadingStudents } = useQuery({
     queryKey: [
@@ -483,8 +592,12 @@ export function StudentsManagement() {
       }),
   });
 
-  const { createStudent, approveStudent, rejectStudent } = useStudentMutations();
+  const { createStudent, approveStudent, rejectStudent, changeStudentRoom, updateStudent } = useStudentMutations();
   const handleAddStudent = async (newStudent: Partial<Student>) => {
+    if(newStudent.studentName!.split(" ").length < 2) {
+      toast.error("First name and last name are compulsory")
+      return;
+    }
     const student: Student = {
       studentId: newStudent.studentId!,
       studentGeneratedId: newStudent.studentGeneratedId!,
@@ -507,9 +620,13 @@ export function StudentsManagement() {
     await createStudent(JSON.stringify(student));
   };
 
-  const handleEditStudent = (updatedStudent: Partial<Student>) => {
+  const handleEditStudent = async (updatedStudent: Partial<Student>) => {
     if (!selectedStudent) return;
-
+    if(updatedStudent.studentName!.split(" ").length < 2) {
+      toast.error("First name and last name are compulsory")
+      return;
+    }
+    await updateStudent(JSON.stringify(updatedStudent));
     setSelectedStudent(null);
     setViewMode(null);
   };
@@ -530,6 +647,10 @@ export function StudentsManagement() {
 
     setSelectedStudent(null);
     setViewMode(null);
+  };
+
+  const handleChangeRoom = async (studentId: string, newRoomId: string) => {
+    await changeStudentRoom({ studentId, newRoomId });
   };
 
   return (
@@ -727,6 +848,15 @@ export function StudentsManagement() {
                             <Pencil className="mr-2 h-4 w-4" />
                             Edit Details
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedStudentForRoomChange(student.studentId);
+                              setIsChangeRoomDialogOpen(true);
+                            }}
+                          >
+                            <ArrowRightLeft className="mr-2 h-4 w-4" />
+                            Change Room
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="text-red-600"
@@ -791,6 +921,17 @@ export function StudentsManagement() {
             />
           </DialogContent>
         </Dialog>
+      )}
+
+      {selectedStudentForRoomChange && (
+        <ChangeRoomDialog
+          studentId={selectedStudentForRoomChange}
+          onClose={() => {
+            setSelectedStudentForRoomChange(null);
+            setIsChangeRoomDialogOpen(false);
+          }}
+          onSubmit={handleChangeRoom}
+        />
       )}
     </div>
   );

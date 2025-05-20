@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addStudent, deleteStudent, markAsApproved, markAsRejected } from "./StudentServer";
+import { addStudent, deleteStudent, markAsApproved, markAsRejected, changeRoom, editStudent } from "./StudentServer";
 import { toast } from "sonner";
 
 export default function useStudentMutations(){
@@ -10,7 +10,7 @@ export default function useStudentMutations(){
         },
         onSuccess : (data)=> {
             if(data.success){
-                toast.success("Student created successfully.")
+                toast.success(data.message)
                 queryClient.invalidateQueries({queryKey : ["students"]})
             }else{
                 toast.error(data.message)
@@ -27,7 +27,7 @@ export default function useStudentMutations(){
         },
         onSuccess : (data)=> {
             if(data.success){
-                toast.success("Student marked as approved.")
+                toast.success(data.message)
                 queryClient.invalidateQueries({queryKey : ["students"]})
             }else{
                 toast.error(data.message)
@@ -44,7 +44,7 @@ export default function useStudentMutations(){
         },
         onSuccess : (data)=> {
             if(data.success){
-                toast.success("Student marked as rejected.")
+                toast.success(data.message)
                 queryClient.invalidateQueries({queryKey : ["students"]})
             }else{
                 toast.error(data.message)
@@ -61,7 +61,7 @@ export default function useStudentMutations(){
         },
         onSuccess : (data)=> {
             if(data.success){
-                toast.success("Student deleted successfully.")
+                toast.success(data.message)
                 queryClient.invalidateQueries({queryKey : ["students"]})
             }else{
                 toast.error(data.message)
@@ -72,5 +72,52 @@ export default function useStudentMutations(){
         }
     })
 
-    return {createStudent, isCreatingStudent, approveStudent, isApprovingStudent, rejectStudent, isRejectingStudent, removeStudent, isRemovingStudent}
+    const {mutateAsync : updateStudent, isPending : isUpdatingStudent} = useMutation({
+        mutationFn : async(data : string) => {
+            return await editStudent(data)
+        },
+        onSuccess : (data)=> {
+            if(data.success){
+                toast.success(data.message)
+                queryClient.invalidateQueries({queryKey : ["students"]})
+            }else{
+                toast.error(data.message)
+            }
+        },
+        onError : (error)=> {
+            toast.error(error.message)
+        }
+    })
+
+    const {mutateAsync : changeStudentRoom, isPending : isChangingRoom} = useMutation({
+        mutationFn : async({studentId, newRoomId} : {studentId: string, newRoomId: string}) => {
+            return await changeRoom(studentId, newRoomId)
+        },
+        onSuccess : (data)=> {
+            if(data.success){
+                toast.success(data.message)
+                queryClient.invalidateQueries({queryKey : ["students"]})
+            }else{
+                toast.error(data.message)
+            }
+        },
+        onError : (error)=> {
+            toast.error(error.message)
+        }
+    })
+
+    return {
+        createStudent, 
+        isCreatingStudent, 
+        approveStudent, 
+        isApprovingStudent, 
+        rejectStudent, 
+        isRejectingStudent, 
+        removeStudent, 
+        isRemovingStudent,
+        changeStudentRoom,
+        isChangingRoom,
+        updateStudent,
+        isUpdatingStudent
+    }
 }
