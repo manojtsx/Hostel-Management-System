@@ -42,7 +42,7 @@ import { useQuery } from "@tanstack/react-query"
 import { getAnnouncements } from "./AnnouncementServer"
 import useAnnouncementMutations from "./AnnouncementMutations"
 import { useDebounce } from "@/utils/debounce/usedebounce"
-import { AnnouncementPriority, AnnouncementStatus, AnnouncementType } from "@prisma/client"
+import { AnnouncementPriority, AnnouncementStatus, AnnouncementType } from "@/prisma/generated/prisma"
 import { Pagination } from "@/components/pagination"
 
 interface Announcement {
@@ -273,7 +273,7 @@ export function AnnouncementsManagement() {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(5)
   const [filters, setFilters] = useState({
     type: "All",
     priority: "All",
@@ -498,7 +498,13 @@ export function AnnouncementsManagement() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <span className="text-sm text-muted-foreground">
-                          Posted: {new Date(announcement.date).toLocaleDateString()}
+                          Posted: {new Date(announcement.createdAt).toLocaleDateString()}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          Last Updated: {new Date(announcement.updatedAt).toLocaleDateString()}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          Event Date: {new Date(announcement.date).toLocaleDateString()}
                         </span>
                         <Badge className={getStatusColor(announcement.status)}>
                           {announcement.status}

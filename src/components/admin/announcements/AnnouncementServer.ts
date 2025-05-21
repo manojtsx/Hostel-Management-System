@@ -104,7 +104,7 @@ export const getAnnouncements = async (currentPage: number, pageSize: number, se
             take: pageSize,
             skip: (currentPage - 1) * pageSize,
             orderBy: {
-                date: "desc"
+                date: "asc"
             }
         });
 
