@@ -41,7 +41,7 @@ import { useQuery } from "@tanstack/react-query"
 import { getEvents, getEventsByDateRange } from "./CalendarServer"
 import useCalendarMutations from "./CalendarMutations"
 import { useDebounce } from "@/utils/debounce/usedebounce"
-import { EventType } from "@prisma/client"
+import { EventType } from "@/prisma/generated/prisma"
 import { Pagination } from "@/components/pagination"
 
 interface EventFormData {
@@ -425,7 +425,7 @@ export function CalendarManagement() {
         </Dialog>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 h-auto">
         {/* Calendar View */}
         <Card>
           <CardHeader>
@@ -483,14 +483,14 @@ export function CalendarManagement() {
         </Card>
 
         {/* Upcoming Events */}
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader>
             <CardTitle>Upcoming Events</CardTitle>
             <CardDescription>
               View and manage upcoming events
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col flex-1">
             <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-1 items-center space-x-2">
                 <Input
@@ -521,7 +521,7 @@ export function CalendarManagement() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1 overflow-y-auto min-h-0">
               {isLoading ? (
                 <div className="text-center py-4">Loading events...</div>
               ) : eventsData?.data && eventsData.data.length === 0 ? (
@@ -595,7 +595,7 @@ export function CalendarManagement() {
             </div>
 
             {eventsData && eventsData.totalPages && eventsData.totalPages > 1 && (
-              <div className="mt-4">
+              <div className="mt-4 pt-4 border-t">
                 <Pagination
                   currentPage={currentPage}
                   totalItems={eventsData.total}

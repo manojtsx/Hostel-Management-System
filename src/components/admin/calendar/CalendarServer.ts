@@ -1,7 +1,7 @@
 "use server"
 import prisma from "@/lib/prisma"
 import { isValidAdmin } from "@/lib/validation/role-validation"
-import { EventType, Prisma } from "@prisma/client";
+import { EventType, Prisma } from "@/prisma/generated/prisma";
 
 // add event
 export const addEvent = async (data: string) => {
@@ -22,6 +22,21 @@ export const addEvent = async (data: string) => {
             return {
                 success: false,
                 message: "Invalid date format"
+            }
+        }
+
+        // check if the event is already created for the same date or not
+        const existingEvent = await prisma.hostelEvents.findFirst({
+            where: {
+                date: eventDate,
+                hostelId: isAdmin.hostelId as string
+            }
+        });
+
+        if (existingEvent) {    
+            return {    
+                success: false,
+                message: "Event already created for this date"
             }
         }
 
@@ -166,6 +181,24 @@ export const editEvent = async (data: string) => {
             return {
                 success: false,
                 message: "Invalid date format"
+            }
+        }
+
+        // check if the event is already created for the same date or not
+        const existingEvent = await prisma.hostelEvents.findFirst({
+            where: {
+                date: eventDate,
+                eventId: {
+                    not: parsedData.eventId
+                },
+                hostelId: isAdmin.hostelId as string
+            }
+        });
+
+        if (existingEvent) {
+            return {
+                success: false,
+                message: "Event already created for this date"
             }
         }
 
