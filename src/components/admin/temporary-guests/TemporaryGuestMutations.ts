@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { addTemporaryGuest, deleteTemporaryGuest, editTemporaryGuest, updateTemporaryGuestStatus } from "./TemporaryGuestServer"
 import { toast } from "sonner"
-import { GuestStatus } from "@prisma/client"
+import { GuestStatus } from "@/prisma/generated/prisma"
 
 export default function useTemporaryGuestMutations() {
     const queryClient = useQueryClient()

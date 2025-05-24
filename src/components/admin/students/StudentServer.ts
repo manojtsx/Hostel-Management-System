@@ -29,7 +29,7 @@ export const addStudent = async (data: string) => {
         console.log(parsedData, "parsed Data");
 
         // make first name and last name compulsory check that in studentName
-        if(parsedData.studentName.split(" ").length < 2) {
+        if (parsedData.studentName.split(" ").length < 2) {
             return {
                 success: false,
                 message: "First name and last name are compulsory"
@@ -52,15 +52,15 @@ export const addStudent = async (data: string) => {
                 hostelId: isAdmin.hostelId as string
             }
         })
-        if(existing) {
+        if (existing) {
             return {
                 success: false,
                 message: "Email or Phone already exists"
             }
         }
-        
-         // First check if the room has capacity
-         const room = await prisma.hostelRoom.findUnique({
+
+        // First check if the room has capacity
+        const room = await prisma.hostelRoom.findUnique({
             where: {
                 roomId: parsedData.studentRoom
             },
@@ -85,11 +85,11 @@ export const addStudent = async (data: string) => {
                 message: "Room is at full capacity"
             }
         }
-        
+
 
         // create a student
         await prisma.$transaction(async (tx) => {
-           
+
 
             const auth = await tx.auth.create({
                 data: {
@@ -159,21 +159,21 @@ export const addStudent = async (data: string) => {
 }
 
 // get students
-export const getStudents = async (currentPage : number, pageSize : number, searchQuery : string, filters : { status : string , startDate : Date , endDate : Date}) => {
+export const getStudents = async (currentPage: number, pageSize: number, searchQuery: string, filters: { status: string, startDate: Date, endDate: Date }) => {
     const isAdmin = await isValidAdmin();
-    if(!isAdmin) {
+    if (!isAdmin) {
         return {
             success: false,
             message: "You are not authorized to get students"
         }
     }
-    try{
+    try {
         console.log(filters, "filters");
-        let whereClause : Prisma.HostelStudentWhereInput = {
-            hostelId : isAdmin.hostelId as string
+        let whereClause: Prisma.HostelStudentWhereInput = {
+            hostelId: isAdmin.hostelId as string
         };
 
-        if(searchQuery) {
+        if (searchQuery) {
             whereClause.OR = [
                 {
                     studentName: {
@@ -232,15 +232,15 @@ export const getStudents = async (currentPage : number, pageSize : number, searc
             ];
         }
 
-        if(filters.status && filters.status !== "All") {
+        if (filters.status && filters.status !== "All") {
             whereClause.status = filters.status as Status;
         }
-        if(filters.startDate) {
+        if (filters.startDate) {
             whereClause.studentCheckInDate = {
                 gte: filters.startDate
             } as Prisma.DateTimeFilter;
         }
-        if(filters.endDate) {
+        if (filters.endDate) {
             if (whereClause.studentCheckInDate) {
                 (whereClause.studentCheckInDate as Prisma.DateTimeFilter).lte = filters.endDate;
             } else {
@@ -319,12 +319,69 @@ export const editStudent = async (data: string) => {
         }
     }
 
+
     try {
         const parsedData = JSON.parse(data);
+        // make first name and last name compulsory check that in studentName
+        if (parsedData.studentName.split(" ").length < 2) {
+            return {
+                success: false,
+                message: "First name and last name are compulsory"
+            }
+        }
+
+        // check if exising email or phone
+        const existing = await prisma.hostelStudent.findFirst({
+            where: {
+                OR: [
+                    {
+                        studentEmail: parsedData.studentEmail
+                    },
+                    {
+                        studentPhone: parsedData.studentPhone
+                    }
+                ],
+                hostelId: isAdmin.hostelId as string
+            }
+        })
+        if (existing) {
+            return {
+                success: false,
+                message: "Email or Phone already exists"
+            }
+        }
+
+        // First check if the room has capacity
+        const room = await prisma.hostelRoom.findUnique({
+            where: {
+                roomId: parsedData.studentRoom
+            },
+            include: {
+                students: true,
+                temporaryGuests: true
+            }
+        });
+
+        if (!room) {
+            return {
+                success: false,
+                message: "Room not found"
+            }
+        }
+
+        // Check room capacity before creating student
+        const currentOccupants = (room.students.length || 0) + (room.temporaryGuests.length || 0);
+        if (Number(room.roomCapacity) <= currentOccupants) {
+            return {
+                success: false,
+                message: "Room is at full capacity"
+            }
+        }
+
         await prisma.$transaction(async (tx) => {
             const updatedStudent = await tx.hostelStudent.update({
                 where: {
-                  studentId : parsedData.studentId
+                    studentId: parsedData.studentId
                 },
                 data: {
                     studentPhone: parsedData.studentPhone,
@@ -383,7 +440,7 @@ export const deleteStudent = async (studentId: string) => {
         await prisma.$transaction(async (tx) => {
             const student = await tx.hostelStudent.findUnique({
                 where: {
-                   studentId :studentId
+                    studentId: studentId
                 },
                 select: {
                     authId: true
@@ -399,7 +456,7 @@ export const deleteStudent = async (studentId: string) => {
 
             await tx.hostelStudent.delete({
                 where: {
-                    studentId : studentId
+                    studentId: studentId
                 }
             });
 
@@ -428,7 +485,7 @@ export const markAsApproved = async (studentId: string) => {
     const isAdmin = await isValidAdmin();
     if (!isAdmin) {
         return {
-            success: false, 
+            success: false,
             message: "You are not authorized to mark a student as approved"
         }
     }
@@ -460,19 +517,19 @@ export const markAsRejected = async (studentId: string) => {
     const isAdmin = await isValidAdmin();
     if (!isAdmin) {
         return {
-            success: false, 
+            success: false,
             message: "You are not authorized to mark a student as rejected"
         }
     }
     try {
         await prisma.hostelStudent.update({
-            where: {    
+            where: {
                 studentId: studentId
             },
             data: {
                 status: "Rejected"
             }
-        });     
+        });
 
         return {
             success: true,
@@ -485,10 +542,10 @@ export const markAsRejected = async (studentId: string) => {
             message: "Error marking student as rejected"
         }
     }
-}   
+}
 
 // get rooms for the student
-export const getAllRooms = async (searchQuery : string) => {
+export const getAllRooms = async (searchQuery: string) => {
     const isAdmin = await isValidAdmin();
     if (!isAdmin) {
         return {
@@ -497,10 +554,10 @@ export const getAllRooms = async (searchQuery : string) => {
         }
     }
     try {
-        let whereClause : Prisma.HostelRoomWhereInput = {
-            hostelId : isAdmin.hostelId as string
+        let whereClause: Prisma.HostelRoomWhereInput = {
+            hostelId: isAdmin.hostelId as string
         };
-        if(searchQuery) {
+        if (searchQuery) {
             whereClause.roomNumber = {
                 contains: searchQuery,
                 mode: 'insensitive'
@@ -508,14 +565,14 @@ export const getAllRooms = async (searchQuery : string) => {
         }
         const rooms = await prisma.hostelRoom.findMany({
             where: whereClause,
-            select : {
-                roomId : true,
-                roomNumber : true,
-                roomType : true,
-                roomCapacity : true,
+            select: {
+                roomId: true,
+                roomNumber: true,
+                roomType: true,
+                roomCapacity: true,
             }
         });
-        if(!rooms) {
+        if (!rooms) {
             return {
                 success: false,
                 message: "Rooms not found"

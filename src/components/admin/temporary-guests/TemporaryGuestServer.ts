@@ -1,7 +1,7 @@
 "use server"
 import prisma from "@/lib/prisma"
 import { isValidAdmin } from "@/lib/validation/role-validation"
-import { GuestStatus, Prisma } from "@prisma/client"
+import { GuestStatus, Prisma } from "@/prisma/generated/prisma"
 
 // add temporary guest
 export const addTemporaryGuest = async (data: string) => {
@@ -16,6 +16,34 @@ export const addTemporaryGuest = async (data: string) => {
         const parsedData = JSON.parse(data)
         console.log(parsedData, "parsed Data")
 
+
+        // First check if the room has capacity
+        const room = await prisma.hostelRoom.findUnique({
+            where: {
+                roomId: parsedData.studentRoom
+            },
+            include: {
+                students: true,
+                temporaryGuests: true
+            }
+        });
+
+        if (!room) {
+            return {
+                success: false,
+                message: "Room not found"
+            }
+        }
+
+        // Check room capacity before creating student
+        const currentOccupants = (room.students.length || 0) + (room.temporaryGuests.length || 0);
+        if (Number(room.roomCapacity) <= currentOccupants) {
+            return {
+                success: false,
+                message: "Room is at full capacity"
+            }
+        }
+        
         // create a temporary guest
         await prisma.temporaryGuest.create({
             data: {
@@ -139,6 +167,33 @@ export const editTemporaryGuest = async (data: string) => {
 
     try {
         const parsedData = JSON.parse(data)
+
+        // First check if the room has capacity
+        const room = await prisma.hostelRoom.findUnique({
+            where: {
+                roomId: parsedData.studentRoom
+            },
+            include: {
+                students: true,
+                temporaryGuests: true
+            }
+        });
+
+        if (!room) {
+            return {
+                success: false,
+                message: "Room not found"
+            }
+        }
+
+        // Check room capacity before creating student
+        const currentOccupants = (room.students.length || 0) + (room.temporaryGuests.length || 0);
+        if (Number(room.roomCapacity) <= currentOccupants) {
+            return {
+                success: false,
+                message: "Room is at full capacity"
+            }
+        }
         
         const updatedTemporaryGuest = await prisma.temporaryGuest.update({
             where: {
@@ -213,6 +268,16 @@ export const updateTemporaryGuestStatus = async (guestId: string, status: GuestS
     }
 
     try {
+        if(status === "CheckedOut") {
+            const room = await prisma.temporaryGuest.update({
+                where: {
+                    guestId: guestId
+                },
+                data: {
+                    checkOutDate: new Date()
+                }
+            })
+        }   
         const updatedTemporaryGuest = await prisma.temporaryGuest.update({
             where: {
                 guestId: guestId

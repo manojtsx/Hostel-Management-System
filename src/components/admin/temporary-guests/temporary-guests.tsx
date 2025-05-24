@@ -50,7 +50,7 @@ import { useQuery } from "@tanstack/react-query"
 import { getTemporaryGuests, getAvailableRooms } from "./TemporaryGuestServer"
 import useTemporaryGuestMutations from "./TemporaryGuestMutations"
 import { useDebounce } from "@/utils/debounce/usedebounce"
-import { GuestStatus } from "@prisma/client"
+import { GuestStatus } from "@/prisma/generated/prisma"
 import { Pagination } from "@/components/pagination"
 import { Textarea } from "@/components/ui/textarea"
 import { format } from "date-fns"
@@ -181,19 +181,6 @@ function TemporaryGuestForm({ guest, onSubmit, onCancel, mode }: TemporaryGuestF
           type="datetime-local"
           value={formData.checkInDate ? format(new Date(formData.checkInDate), "yyyy-MM-dd'T'HH:mm") : ""}
           onChange={(e) => setFormData({ ...formData, checkInDate: new Date(e.target.value) })}
-          className="col-span-3"
-          required
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="checkOutDate" className="text-right">
-          Check-out Date
-        </Label>
-        <Input
-          id="checkOutDate"
-          type="datetime-local"
-          value={formData.checkOutDate ? format(new Date(formData.checkOutDate), "yyyy-MM-dd'T'HH:mm") : ""}
-          onChange={(e) => setFormData({ ...formData, checkOutDate: new Date(e.target.value) })}
           className="col-span-3"
           required
         />
